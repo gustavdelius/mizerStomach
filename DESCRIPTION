@@ -11,3 +11,7 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/gustavdelius/predpreyfit
 BugReports: https://github.com/gustavdelius/predpreyfit/issues
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
