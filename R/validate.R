@@ -5,6 +5,7 @@
 #' @param value A numeric vector of observed values
 #' @param weight A numeric vector of weights
 #' @return TRUE if the arguments are valid. Raises and error otherwise.
+#' @keywords internal
 validate_weighted_observations <- function(value, weight) {
   if (length(value) < 100) {
     stop("Not enough data to fit a distribution")

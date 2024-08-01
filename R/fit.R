@@ -42,6 +42,8 @@ fit_log_ppmr <-
 #' @param value A numeric vector of observed values
 #' @param weight A numeric vector of weights
 #' @return A list with the fitted parameters `mean` and `sd`
+#' @export
+#' @keywords internal
 fit_normal <- function(value, weight) {
   validate_weighted_observations(value, weight)
   fit <- list(mean = weighted.mean(ppmr_data$value, w = ppmr_data$w_prey),
@@ -58,6 +60,8 @@ weighted.sd <- function(x, w) {
 #' @param value A numeric vector of observed values
 #' @param weight A numeric vector of weights
 #' @return A list with the fitted parameters `exp`, `ll`, `ul`, `lr`, `ur`
+#' @export
+#' @keywords internal
 fit_truncated_exponential <- function(value, weight) {
   validate_weighted_observations(value, weight)
   fit <- list() # TODO: Implement this function
@@ -70,6 +74,8 @@ fit_truncated_exponential <- function(value, weight) {
 #' @param weight A numeric vector of weights
 #' @return A list with the fitted parameters `mean`, `sd` and `p`, each of which
 #'   is a vector with one entry for each component of the mixture
+#' @export
+#' @keywords internal
 fit_gaussian_mixture <- function(value, weight) {
   validate_weighted_observations(value, weight)
   fit <- list() # TODO: Implement this function

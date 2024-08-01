@@ -27,6 +27,8 @@ transform_fit <- function(fit, power) {
 #' @param fit A list with the parameters `mean` and `sd`
 #' @param power The power to raise the weights to
 #' @return A list with the updated parameters
+#' @export
+#' @keywords internal
 transform_normal <- function(fit, power = 1) {
   fit$mean <- fit$mean - power * fit$sd^2
   return(fit)
@@ -37,6 +39,8 @@ transform_normal <- function(fit, power = 1) {
 #' @param fit A list with the parameters `exp`, `ll`, `ul`, `lr`, `ur`
 #' @param power The power to raise the weights to
 #' @return A list with the updated parameters
+#' @export
+#' @keywords internal
 transform_truncated_exp <- function(fit, power = 1) {
   fit$exp <- fit$exp - power
   return(fit)
@@ -48,6 +52,8 @@ transform_truncated_exp <- function(fit, power = 1) {
 #'   vector with one entry for each component of the mixture
 #' @param power The power to raise the weights to
 #' @return A list with the updated parameters
+#' @export
+#' @keywords internal
 transform_gaussian_mixture <- function(fit, power = 1) {
   fit$mean <- fit$mean - power * fit$sd^2
   p <- fit$p * exp(-power * fit$mean + 0.5 * power^2 * fit$sd^2)
