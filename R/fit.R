@@ -46,8 +46,8 @@ fit_log_ppmr <-
 #' @keywords internal
 fit_normal <- function(value, weight) {
   validate_weighted_observations(value, weight)
-  fit <- list(mean = weighted.mean(ppmr_data$value, w = ppmr_data$w_prey),
-              sd = weighted.sd(ppmr_data$value, w = ppmr_data$w_prey))
+  fit <- list(mean = weighted.mean(value, w = weight),
+              sd = weighted.sd(value, w = weight))
   return(fit)
 }
 

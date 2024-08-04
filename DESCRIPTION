@@ -1,4 +1,4 @@
-Package: predpreyfit
+Package: mizerStomach
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
@@ -6,17 +6,23 @@ Author: Who wrote it
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/gustavdelius/predpreyfit
-BugReports: https://github.com/gustavdelius/predpreyfit/issues
+URL: https://github.com/gustavdelius/mizerStomach
+BugReports: https://github.com/gustavdelius/mizerStomach/issues
 Imports:
-    ggplot2
+    dplyr,
+    ggplot2,
+    mizer,
+    mizerExperimental
+Remotes:
+    sizespectrum/mizerExperimental
 Suggests: 
     knitr,
     rmarkdown
 Collate:
+    'mizerStomach-package.R'
     'fit.R'
     'plot.R'
     'transform.R'
