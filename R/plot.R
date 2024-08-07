@@ -21,7 +21,7 @@ plot_log_ppmr_fit <- function(ppmr_data, fit) {
   fit1 <- transform_fit(fit, 1)
   dist1 <- data.frame(log_ppmr = grid, Density = get_density(grid, fit1))
 
-  ggplot(df) +
+  ggplot(ppmr_data) +
     geom_density(aes(log_ppmr, weight = n_prey), fill = "lightblue") +
     geom_density(aes(log_ppmr, weight = biomass), fill = "#ffcccb", alpha = 0.5) +
     xlab("Log of predator/prey mass ratio") +

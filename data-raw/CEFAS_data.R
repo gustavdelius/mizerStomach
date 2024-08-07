@@ -11,13 +11,13 @@ df <- stom_df |>
             w_prey = prey_ind_weight_g,
             n_prey = nprey_perpred,
             log_ppmr = log(ppmr)) |>
-  filter(w_pred>0, w_prey>0, n_prey>0)
+  filter(w_pred > 0, w_prey > 0, n_prey > 0)
 
 df <- validate_ppmr_data(df)
 
-fit0 <- fit_log_ppmr(df, species , distribution = "truncated_exponential")
+fit <- fit_log_ppmr(df, species , distribution = "truncated_exponential")
 
-plot_log_ppmr_fit(df, fit0) +
+plot_log_ppmr_fit(df, fit) +
   ggtitle("Fit to number density")
 
 # Fit to biomass

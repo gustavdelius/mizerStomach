@@ -42,7 +42,7 @@ transform_normal <- function(fit, power = 1) {
 #' @export
 #' @keywords internal
 transform_truncated_exp <- function(fit, power = 1) {
-  fit$exp <- fit$exp - power
+  fit$alpha <- fit$alpha - power
   return(fit)
 }
 

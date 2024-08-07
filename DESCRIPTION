@@ -15,6 +15,7 @@ Imports:
     bbmle,
     dplyr,
     ggplot2,
+    Hmisc,
     mizer,
     mizerExperimental
 Remotes:
