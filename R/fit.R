@@ -110,14 +110,14 @@ fit_gaussian_mixture <- function(value, weight,
         
         # M-step: Update parameters with weights
         for (j in 1:k) {
-            w_gamma <- weights * gamma[, j]
-            lambda[j] <- sum(w_gamma) / sum(weights)
+            w_gamma <- weight * gamma[, j]
+            lambda[j] <- sum(w_gamma) / sum(weight)
             mu[j] <- sum(w_gamma * value) / sum(w_gamma)
             sigma[j] <- sqrt(sum(w_gamma * (value - mu[j])^2) / sum(w_gamma))
         }
         
         # Calculate log-likelihood
-        log_likelihood[iter] <- sum(weights * log(rowSums(gamma)))
+        log_likelihood[iter] <- sum(weight * log(rowSums(gamma)))
         
         # Check for convergence
         if (iter > 1 && 

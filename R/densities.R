@@ -12,11 +12,12 @@ get_density <- function(x, fit) {
         d <- dtexp(x, alpha = fit$alpha, ll = fit$ll, ul = fit$ul,
                    lr = fit$lr, ur = fit$ur)
     } else if (fit$distribution == "gaussian_mixture") {
-        d <- dnorm(x, mean = fit$mean, sd = fit$sd)
+        d <- x * 0
         for (i in seq_along(fit$p)) {
             d <- d + fit$p[i] * dnorm(x, mean = fit$mean[i], sd = fit$sd[i])
         }
     }
+    return(d)
 }
 
 #' Density function of truncated exponential distribution
