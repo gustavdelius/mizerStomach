@@ -55,51 +55,6 @@ weighted.sd <- function(x, w) {
   sqrt(sum(w * (x - weighted.mean(x, w))^2 / sum(w)))
 }
 
-fl <- function(x, alpha, ll, ul, lr, ur) {
-  dl <- ll - x
-  dr <- x - lr
-  fl <- exp(alpha * x) /
-    (1 + exp(ul * dl)) /
-    (1 + exp(ur * dr))
-  # fl[fl <= 0] <- 0
-}
-
-#' Density function of truncated exponential distribution
-#'
-#' @param x A numeric vector of values
-#' @param alpha exponent
-#' @param ll location of lower sigmoid
-#' @param ul steepness of lower sigmoid
-#' @param lr location of upper sigmoid
-#' @param ur steepness of upper sigmoid
-#' @return A numeric vector of densities
-#' @export
-dtexp <- function(x, alpha, ll, ul, lr, ur) {
-  d <- fl(x, alpha, ll, ul, lr, ur)
-  integral_result <- tryCatch(
-    integrate(fl, 0, 30, alpha = alpha, ll = ll, ul = ul, lr = lr, ur = ur),
-    error = function(e) {
-      print("Integration failed")
-      print(e)
-      return(NULL)
-    }
-  )
-  # The following is crucial to keep the search from going deeper into
-  # nonsense values.
-  if (is.null(integral_result)) {
-    return(rep(NA, length(x)))
-  }
-
-  d <- d / integral_result$value
-
-  if (any(d <= 0)) {
-    stop("The density contains non-positive values when",
-         " alpha = ", alpha, " ll = ", ll, " ul = ", ul,
-         " lr = ", lr, " ur = ", ur)
-  }
-  return(d)
-}
-
 #' Fit a truncated exponential distribution to weighted observations
 #'
 #' @param value A numeric vector of observed values
@@ -133,23 +88,43 @@ fit_truncated_exponential <- function(value, weight) {
 #'   is a vector with one entry for each component of the mixture
 #' @export
 #' @keywords internal
-fit_gaussian_mixture <- function(value, weight) {
-  validate_weighted_observations(value, weight)
-  fit <- list() # TODO: Implement this function
-  return(fit)
-}
-
-get_density <- function(x, fit) {
-  fit <- validate_fit(fit)
-  if (fit$distribution == "normal") {
-    d <- dnorm(x, mean = fit$mean, sd = fit$sd)
-  } else if (fit$distribution == "truncated_exponential") {
-    d <- dtexp(x, alpha = fit$alpha, ll = fit$ll, ul = fit$ul,
-               lr = fit$lr, ur = fit$ur)
-  } else if (fit$distribution == "gaussian_mixture") {
-    d <- dnorm(x, mean = fit$mean, sd = fit$sd)
-    for (i in seq_along(fit$p)) {
-      d <- d + fit$p[i] * dnorm(x, mean = fit$mean[i], sd = fit$sd[i])
+fit_gaussian_mixture <- function(value, weight, 
+                                 k = 2, max_iter = 100, tol = 1e-6) {
+    validate_weighted_observations(value, weight)
+    n <- length(value)
+    
+    # Initialize parameters
+    lambda <- rep(1/k, k)
+    mu <- seq(min(value), max(value), length.out = k)
+    sigma <- rep(sd(value), k)
+    
+    log_likelihood <- numeric(max_iter)
+    
+    for (iter in 1:max_iter) {
+        # E-step: Calculate responsibilities
+        gamma <- matrix(0, nrow = n, ncol = k)
+        for (j in 1:k) {
+            gamma[, j] <- lambda[j] * dnorm(value, mean = mu[j], sd = sigma[j])
+        }
+        gamma <- gamma / rowSums(gamma)
+        
+        # M-step: Update parameters with weights
+        for (j in 1:k) {
+            w_gamma <- weights * gamma[, j]
+            lambda[j] <- sum(w_gamma) / sum(weights)
+            mu[j] <- sum(w_gamma * value) / sum(w_gamma)
+            sigma[j] <- sqrt(sum(w_gamma * (value - mu[j])^2) / sum(w_gamma))
+        }
+        
+        # Calculate log-likelihood
+        log_likelihood[iter] <- sum(weights * log(rowSums(gamma)))
+        
+        # Check for convergence
+        if (iter > 1 && 
+            abs(log_likelihood[iter] - log_likelihood[iter - 1]) < tol) {
+            break
+        }
     }
-  }
+    
+    list(p = lambda, mean = mu, sd = sigma)
 }
