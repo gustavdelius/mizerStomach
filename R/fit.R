@@ -71,8 +71,8 @@ fit_truncated_exponential <- function(value, weight) {
   }
   fit <- mle2(loglik, start = list(
     alpha = 0.5,
-    ll = min(value),
-    lr = max(value),
+    ll = Hmisc::wtd.quantile(value, weight, 0.05),
+    lr = Hmisc::wtd.quantile(value, weight, 0.95),
     ul = 5,
     ur = 5),
     method = "L-BFGS-B",

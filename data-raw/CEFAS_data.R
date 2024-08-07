@@ -37,9 +37,20 @@ plot_log_ppmr_fit(df, fit1) + ggtitle("Fit to biomass density")
 
 species <- "Merluccius merluccius"
 
-fit <- fit_log_ppmr(df, species, distribution = "gaussian_mixture")
+fit <- fit_log_ppmr(df, species, distribution = "normal")
 plot_log_ppmr_fit(df, fit) + ggtitle("Fit to number density")
 
+fit <- fit_log_ppmr(df, species, distribution = "normal", power = 1)
+plot_log_ppmr_fit(df, fit) + ggtitle("Fit to biomass density")
+
+fit <- fit_log_ppmr(df, species, distribution = "truncated_exponential")
+plot_log_ppmr_fit(df, fit) + ggtitle("Fit to number density")
+
+fit <- fit_log_ppmr(df, species, distribution = "truncated_exponential", power = 1)
+plot_log_ppmr_fit(df, fit) + ggtitle("Fit to biomass density")
+
+fit <- fit_log_ppmr(df, species, distribution = "gaussian_mixture")
+plot_log_ppmr_fit(df, fit) + ggtitle("Fit to number density")
 
 fit <- fit_log_ppmr(df, species, distribution = "gaussian_mixture",
                     power = 1)
