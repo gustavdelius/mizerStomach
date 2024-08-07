@@ -16,7 +16,7 @@ fit_log_ppmr <-
            distribution = c("normal", "truncated_exponential", "gaussian_mixture"),
            power = 0) {
     distribution <- match.arg(distribution)
-    validate_ppmr_data(ppmr_data)
+    ppmr_data <- validate_ppmr_data(ppmr_data)
     if (!species %in% unique(ppmr_data$species)) {
       stop("Species", fit$species, "not found in ppmr data")
     }
@@ -55,16 +55,73 @@ weighted.sd <- function(x, w) {
   sqrt(sum(w * (x - weighted.mean(x, w))^2))
 }
 
+fl <- function(x, alpha, ll, ul, lr, ur) {
+  dl <- ll - x
+  dr <- x - lr
+  fl <- exp(alpha * x) /
+    (1 + exp(ul * dl)) /
+    (1 + exp(ur * dr))
+  # fl[fl <= 0] <- 0
+}
+
+#' Density function of truncated exponential distribution
+#'
+#' @param x A numeric vector of values
+#' @param alpha exponent
+#' @param ll location of lower sigmoid
+#' @param ul steepness of lower sigmoid
+#' @param lr location of upper sigmoid
+#' @param ur steepness of upper sigmoid
+#' @return A numeric vector of densities
+#' @export
+dtexp <- function(x, alpha, ll, ul, lr, ur) {
+  d <- fl(x, alpha, ll, ul, lr, ur)
+  integral_result <- tryCatch(
+    integrate(fl, 0, 30, alpha = alpha, ll = ll, ul = ul, lr = lr, ur = ur),
+    error = function(e) {
+      print("Integration failed")
+      print(e)
+      return(NULL)
+    }
+  )
+  # The following is crucial to keep the search from going deeper into
+  # nonsense values.
+  if (is.null(integral_result)) {
+    return(rep(NA, length(x)))
+  }
+
+  d <- d / integral_result$value
+
+  if (any(d <= 0)) {
+    stop("The density contains non-positive values when",
+         " alpha = ", alpha, " ll = ", ll, " ul = ", ul,
+         " lr = ", lr, " ur = ", ur)
+  }
+  return(d)
+}
+
 #' Fit a truncated exponential distribution to weighted observations
 #'
 #' @param value A numeric vector of observed values
 #' @param weight A numeric vector of weights
-#' @return A list with the fitted parameters `exp`, `ll`, `ul`, `lr`, `ur`
+#' @return A list with the fitted parameters `alpha`, `ll`, `ul`, `lr`, `ur`
 #' @export
 #' @keywords internal
 fit_truncated_exponential <- function(value, weight) {
   validate_weighted_observations(value, weight)
-  fit <- list() # TODO: Implement this function
+
+  loglik <- function(alpha, ll, ul, lr, ur) {
+    L <- dtexp(value, alpha, ll, ul, lr, ur)
+    return(-sum(log(L) * weight))
+  }
+  fit <- mle2(loglik, start = list(
+    alpha = 0.5,
+    ll = min(value),
+    lr = max(value),
+    ul = 5,
+    ur = 5),
+    method = "L-BFGS-B",
+    control = list(maxit = 10000))
   return(fit)
 }
 

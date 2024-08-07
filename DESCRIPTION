@@ -12,6 +12,7 @@ LazyData: true
 URL: https://github.com/gustavdelius/mizerStomach
 BugReports: https://github.com/gustavdelius/mizerStomach/issues
 Imports:
+    bbmle,
     dplyr,
     ggplot2,
     mizer,
@@ -29,3 +30,4 @@ Collate:
     'validate.R'
 VignetteBuilder: knitr
 RoxygenNote: 7.3.2
+Roxygen: list(markdown = TRUE)

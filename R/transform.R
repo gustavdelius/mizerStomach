@@ -6,7 +6,7 @@
 #' @return An updated `fit` object
 #' @export
 transform_fit <- function(fit, power) {
-  validate_fit(fit)
+  fit <- validate_fit(fit)
   if (!is.numeric(power) || length(power) != 1) {
     stop("power must be a single numeric value")
   }

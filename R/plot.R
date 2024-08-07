@@ -7,8 +7,8 @@
 #' @param fit A list with the fitted distribution parameters
 #' @export
 plot_log_ppmr_fit <- function(ppmr_data, fit) {
-  validate_ppmr_data(ppmr_data)
-  validate_fit(fit)
+  ppmr_data <- ppmr_data <- validate_ppmr_data(ppmr_data)
+  fit <- validate_fit(fit)
   if (!fit$species %in% unique(ppmr_data$species)) {
     stop("Species", fit$species, "not found in ppmr data")
   }
