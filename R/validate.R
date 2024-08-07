@@ -55,21 +55,21 @@ validate_fit <- function(fit) {
     if (!hasName(fit, "sd")) {
       stop("fit must have a sd attribute")
     }
-  } else if (fit$distribution == "truncated_exp") {
-    if (!hasName(fit, "exp")) {
-      stop("fit must have an exp attribute")
+  } else if (fit$distribution == "truncated_exponential") {
+    if (!hasName(fit, "alpha")) {
+      stop("fit must have an `alpha` attribute")
     }
     if (!hasName(fit, "ll")) {
-      stop("fit must have an ll attribute")
+      stop("fit must have an `ll` attribute")
     }
     if (!hasName(fit, "ul")) {
-      stop("fit must have an ul attribute")
+      stop("fit must have an `ul` attribute")
     }
     if (!hasName(fit, "lr")) {
-      stop("fit must have an lr attribute")
+      stop("fit must have an `lr` attribute")
     }
     if (!hasName(fit, "ur")) {
-      stop("fit must have an ur attribute")
+      stop("fit must have an `ur` attribute")
     }
   } else if (fit$distribution == "gaussian_mixture") {
     if (!hasName(fit, "mean")) {
@@ -86,7 +86,7 @@ validate_fit <- function(fit) {
       stop("mean, sd and p must have the same length")
     }
   } else {
-    stop("Unknown distribution", fit$distribution)
+    stop("Unknown distribution ", fit$distribution)
   }
   return(fit)
 }

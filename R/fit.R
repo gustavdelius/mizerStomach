@@ -122,7 +122,7 @@ fit_truncated_exponential <- function(value, weight) {
     ur = 5),
     method = "L-BFGS-B",
     control = list(maxit = 10000))
-  return(fit)
+  return(as.list(fit@coef))
 }
 
 #' Fit a Gaussian mixture distribution to weighted observations
@@ -137,4 +137,19 @@ fit_gaussian_mixture <- function(value, weight) {
   validate_weighted_observations(value, weight)
   fit <- list() # TODO: Implement this function
   return(fit)
+}
+
+get_density <- function(x, fit) {
+  fit <- validate_fit(fit)
+  if (fit$distribution == "normal") {
+    d <- dnorm(x, mean = fit$mean, sd = fit$sd)
+  } else if (fit$distribution == "truncated_exponential") {
+    d <- dtexp(x, alpha = fit$alpha, ll = fit$ll, ul = fit$ul,
+               lr = fit$lr, ur = fit$ur)
+  } else if (fit$distribution == "gaussian_mixture") {
+    d <- dnorm(x, mean = fit$mean, sd = fit$sd)
+    for (i in seq_along(fit$p)) {
+      d <- d + fit$p[i] * dnorm(x, mean = fit$mean[i], sd = fit$sd[i])
+    }
+  }
 }
