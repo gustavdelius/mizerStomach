@@ -15,10 +15,18 @@ df <- stom_df |>
 
 df <- validate_ppmr_data(df)
 
-fit <- fit_log_ppmr(df, species , distribution = "truncated_exponential")
+fit0 <- fit_log_ppmr(df, species, distribution = "normal")
+plot_log_ppmr_fit(df, fit0) +
+    ggtitle("Fit normal distribution to number density")
 
-plot_log_ppmr_fit(df, fit) +
-  ggtitle("Fit to number density")
+fit1 <- fit_log_ppmr(df, species, distribution = "normal", power = 1)
+plot_log_ppmr_fit(df, fit1) +
+    ggtitle("Fit normal distribution to biomass density")
+
+fit0 <- fit_log_ppmr(df, species , distribution = "truncated_exponential")
+
+plot_log_ppmr_fit(df, fit0) +
+  ggtitle("Fit truncated exponential to number density")
 
 # Fit to biomass
 fit1 <- fit_log_ppmr(df, species,

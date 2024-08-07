@@ -52,7 +52,7 @@ fit_normal <- function(value, weight) {
 }
 
 weighted.sd <- function(x, w) {
-  sqrt(sum(w * (x - weighted.mean(x, w))^2))
+  sqrt(sum(w * (x - weighted.mean(x, w))^2 / sum(w)))
 }
 
 fl <- function(x, alpha, ll, ul, lr, ur) {
