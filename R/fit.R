@@ -37,6 +37,7 @@ fit_log_ppmr <-
     fit$species <- species
     fit$distribution <- distribution
     fit$power <- power
+    fit$min_w_pred <- min_w_pred
     return(fit)
   }
 

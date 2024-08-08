@@ -9,7 +9,8 @@
 plot_log_ppmr_fit <- function(ppmr_data, fit) {
     fit <- validate_fit(fit)
     ppmr_data <- validate_ppmr_data(ppmr_data, species = fit$species) |>
-        filter(species == !!fit$species)
+        filter(species == !!fit$species,
+               w_pred >= fit$min_w_pred)
     ppmr_data$biomass <- ppmr_data$n_prey * ppmr_data$w_prey
     lmin <- Hmisc::wtd.quantile(ppmr_data$log_ppmr, ppmr_data$biomass, 0.001)
     lmax <- Hmisc::wtd.quantile(ppmr_data$log_ppmr, ppmr_data$n_prey, 0.999)

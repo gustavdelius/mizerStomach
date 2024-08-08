@@ -40,20 +40,23 @@ validate_fit <- function(fit) {
         stop("fit must be a list")
     }
     if (!hasName(fit, "species")) {
-        stop("fit must have a species attribute")
+        stop("fit must have a `species` attribute")
     }
     if (!hasName(fit, "power")) {
-        stop("fit must have a power attribute")
+        stop("fit must have a `power` attribute")
     }
     if (!hasName(fit, "distribution")) {
-        stop("fit must have a distribution attribute")
+        stop("fit must have a `distribution` attribute")
+    }
+    if (!hasName(fit, "min_w_pred")) {
+        stop("fit must have a `min_w_pred` attribute")
     }
     if (fit$distribution == "normal") {
         if (!hasName(fit, "mean")) {
-            stop("fit must have a mean attribute")
+            stop("fit must have a `mean` attribute")
         }
         if (!hasName(fit, "sd")) {
-            stop("fit must have a sd attribute")
+            stop("fit must have a `sd` attribute")
         }
     } else if (fit$distribution == "truncated_exponential") {
         if (!hasName(fit, "alpha")) {
@@ -73,13 +76,13 @@ validate_fit <- function(fit) {
         }
     } else if (fit$distribution == "gaussian_mixture") {
         if (!hasName(fit, "mean")) {
-            stop("fit must have a mean attribute")
+            stop("fit must have a `mean` attribute")
         }
         if (!hasName(fit, "sd")) {
-            stop("fit must have a sd attribute")
+            stop("fit must have a `sd` attribute")
         }
         if (!hasName(fit, "p")) {
-            stop("fit must have a p attribute")
+            stop("fit must have a `p` attribute")
         }
         if (!all(length(fit$mean) == length(fit$sd),
                  length(fit$mean) == length(fit$p))) {
