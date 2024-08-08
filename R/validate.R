@@ -58,7 +58,7 @@ validate_fit <- function(fit) {
         if (!hasName(fit, "sd")) {
             stop("fit must have a `sd` attribute")
         }
-    } else if (fit$distribution == "truncated exponential") {
+    } else if (fit$distribution == "trunc_exp") {
         if (!hasName(fit, "alpha")) {
             stop("fit must have an `alpha` attribute")
         }
@@ -74,7 +74,7 @@ validate_fit <- function(fit) {
         if (!hasName(fit, "ur")) {
             stop("fit must have an `ur` attribute")
         }
-    } else if (fit$distribution == "gaussian mixture") {
+    } else if (fit$distribution == "gauss_mix") {
         if (!hasName(fit, "mean")) {
             stop("fit must have a `mean` attribute")
         }

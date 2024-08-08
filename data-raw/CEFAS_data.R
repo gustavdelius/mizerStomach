@@ -24,12 +24,12 @@ fit1 <- fit_log_ppmr(ppmr_data, species, distribution = "normal",
                      power = 1)
 plot_log_ppmr_fit(ppmr_data, fit1)
 
-fit0 <- fit_log_ppmr(ppmr_data, species , distribution = "truncated exponential")
+fit0 <- fit_log_ppmr(ppmr_data, species , distribution = "trunc_exp")
 plot_log_ppmr_fit(ppmr_data, fit0)
 
 # Fit to biomass
 fit1 <- fit_log_ppmr(ppmr_data, species,
-                     distribution = "truncated exponential",
+                     distribution = "trunc_exp",
                      power = 1)
 plot_log_ppmr_fit(ppmr_data, fit1)
 
@@ -41,15 +41,15 @@ plot_log_ppmr_fit(ppmr_data, fit)
 fit <- fit_log_ppmr(ppmr_data, species, distribution = "normal", power = 1)
 plot_log_ppmr_fit(ppmr_data, fit)
 
-fit <- fit_log_ppmr(ppmr_data, species, distribution = "truncated exponential")
+fit <- fit_log_ppmr(ppmr_data, species, distribution = "trunc_exp")
 plot_log_ppmr_fit(ppmr_data, fit)
 
-fit <- fit_log_ppmr(ppmr_data, species, distribution = "truncated exponential", power = 1)
+fit <- fit_log_ppmr(ppmr_data, species, distribution = "trunc_exp", power = 1)
 plot_log_ppmr_fit(ppmr_data, fit)
 
-fit <- fit_log_ppmr(ppmr_data, species, distribution = "gaussian mixture")
+fit <- fit_log_ppmr(ppmr_data, species, distribution = "gauss_mix")
 plot_log_ppmr_fit(ppmr_data, fit)
 
-fit <- fit_log_ppmr(ppmr_data, species, distribution = "gaussian mixture",
+fit <- fit_log_ppmr(ppmr_data, species, distribution = "gauss_mix",
                     power = 1)
 plot_log_ppmr_fit(ppmr_data, fit)

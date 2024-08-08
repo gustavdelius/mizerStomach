@@ -13,9 +13,9 @@ transform_fit <- function(fit, power) {
     power <- power - fit$power
     if (fit$distribution == "normal") {
         fit <- transform_normal(fit, power)
-    } else if (fit$distribution == "truncated exponential") {
+    } else if (fit$distribution == "trunc_exp") {
         fit <- transform_truncated_exp(fit, power)
-    } else if (fit$distribution == "gaussian mixture") {
+    } else if (fit$distribution == "gauss_mix") {
         fit <- transform_gaussian_mixture(fit, power)
     }
     fit$power <- power
