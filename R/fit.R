@@ -4,7 +4,7 @@
 #'   [validate_ppmr_data()] for details
 #' @param species A character string with the species name
 #' @param distribution The distribution to fit. One of "normal",
-#'   "truncated_exponential" or "gaussian_mixture".
+#'   "truncated exponential" or "gaussian mixture".
 #' @param min_w_pred The minimum predator weight to include. Default is 0.
 #' @param power Each observation is weighted by a power of the prey weight. The
 #'   default is 0 which means that each prey individual contributes equally.
@@ -14,7 +14,7 @@
 #' @export
 fit_log_ppmr <-
   function(ppmr_data, species,
-           distribution = c("normal", "truncated_exponential", "gaussian_mixture"),
+           distribution = c("normal", "truncated exponential", "gaussian mixture"),
            min_w_pred = 0, power = 0) {
     distribution <- match.arg(distribution)
     ppmr_data <- validate_ppmr_data(ppmr_data)
@@ -29,9 +29,9 @@ fit_log_ppmr <-
 
     if (distribution == "normal") {
       fit <- fit_normal(value, weight)
-    } else if (distribution == "truncated_exponential") {
+    } else if (distribution == "truncated exponential") {
       fit <- fit_truncated_exponential(value, weight)
-    } else if (distribution == "gaussian_mixture") {
+    } else if (distribution == "gaussian mixture") {
       fit <- fit_gaussian_mixture(value, weight)
     }
     fit$species <- species

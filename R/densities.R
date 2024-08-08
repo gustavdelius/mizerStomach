@@ -8,10 +8,10 @@ get_density <- function(x, fit) {
     fit <- validate_fit(fit)
     if (fit$distribution == "normal") {
         d <- dnorm(x, mean = fit$mean, sd = fit$sd)
-    } else if (fit$distribution == "truncated_exponential") {
+    } else if (fit$distribution == "truncated exponential") {
         d <- dtexp(x, alpha = fit$alpha, ll = fit$ll, ul = fit$ul,
                    lr = fit$lr, ur = fit$ur)
-    } else if (fit$distribution == "gaussian_mixture") {
+    } else if (fit$distribution == "gaussian mixture") {
         d <- x * 0
         for (i in seq_along(fit$p)) {
             d <- d + fit$p[i] * dnorm(x, mean = fit$mean[i], sd = fit$sd[i])

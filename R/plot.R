@@ -20,13 +20,23 @@ plot_log_ppmr_fit <- function(ppmr_data, fit) {
     fit1 <- transform_fit(fit, 1)
     dist1 <- data.frame(log_ppmr = grid, Density = get_density(grid, fit1))
 
+    plot_title <- paste(fit$species, ": Fit of", fit$distribution, "to")
+    if (fit$power == 0) {
+        plot_title <- paste(plot_title, "number density")
+    } else if (fit$power == 1) {
+        plot_title <- paste(plot_title, "biomass density")
+    } else {
+        plot_title <- paste(plot_title, "density with power", fit$power)
+    }
+
     ggplot(ppmr_data) +
         geom_density(aes(log_ppmr, weight = n_prey), fill = "lightblue") +
         geom_density(aes(log_ppmr, weight = biomass), fill = "#ffcccb", alpha = 0.5) +
         xlab("Log of predator/prey mass ratio") +
         geom_line(aes(log_ppmr, Density), data = dist0, color = "blue") +
         geom_line(aes(log_ppmr, Density), data = dist1, color = "red") +
-        xlim(lmin, lmax)
+        xlim(lmin, lmax) +
+        ggtitle(plot_title)
 }
 
 #' Violin plots of predator/prey mass ratios for different predator weights

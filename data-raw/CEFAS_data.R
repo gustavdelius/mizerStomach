@@ -15,43 +15,41 @@ ppmr_data <- validate_ppmr_data(ppmr_data)
 
 species <- "Gadus morhua"
 
+plot_ppmr_violins(ppmr_data, species)
+
 fit0 <- fit_log_ppmr(ppmr_data, species, distribution = "normal")
-plot_log_ppmr_fit(ppmr_data, fit0) +
-    ggtitle("Fit normal distribution to number density")
+plot_log_ppmr_fit(ppmr_data, fit0)
 
-fit1 <- fit_log_ppmr(ppmr_data, species, distribution = "normal", power = 1)
-plot_log_ppmr_fit(ppmr_data, fit1) +
-    ggtitle("Fit normal distribution to biomass density")
+fit1 <- fit_log_ppmr(ppmr_data, species, distribution = "normal",
+                     power = 1)
+plot_log_ppmr_fit(ppmr_data, fit1)
 
-fit0 <- fit_log_ppmr(ppmr_data, species , distribution = "truncated_exponential")
-
-plot_log_ppmr_fit(ppmr_data, fit0) +
-    ggtitle("Fit truncated exponential to number density")
+fit0 <- fit_log_ppmr(ppmr_data, species , distribution = "truncated exponential")
+plot_log_ppmr_fit(ppmr_data, fit0)
 
 # Fit to biomass
 fit1 <- fit_log_ppmr(ppmr_data, species,
-                     distribution = "truncated_exponential",
+                     distribution = "truncated exponential",
                      power = 1)
-
-plot_log_ppmr_fit(ppmr_data, fit1) + ggtitle("Fit to biomass density")
+plot_log_ppmr_fit(ppmr_data, fit1)
 
 species <- "Merluccius merluccius"
 
 fit <- fit_log_ppmr(ppmr_data, species, distribution = "normal")
-plot_log_ppmr_fit(ppmr_data, fit) + ggtitle("Fit to number density")
+plot_log_ppmr_fit(ppmr_data, fit)
 
 fit <- fit_log_ppmr(ppmr_data, species, distribution = "normal", power = 1)
-plot_log_ppmr_fit(ppmr_data, fit) + ggtitle("Fit to biomass density")
+plot_log_ppmr_fit(ppmr_data, fit)
 
-fit <- fit_log_ppmr(ppmr_data, species, distribution = "truncated_exponential")
-plot_log_ppmr_fit(ppmr_data, fit) + ggtitle("Fit to number density")
+fit <- fit_log_ppmr(ppmr_data, species, distribution = "truncated exponential")
+plot_log_ppmr_fit(ppmr_data, fit)
 
-fit <- fit_log_ppmr(ppmr_data, species, distribution = "truncated_exponential", power = 1)
-plot_log_ppmr_fit(ppmr_data, fit) + ggtitle("Fit to biomass density")
+fit <- fit_log_ppmr(ppmr_data, species, distribution = "truncated exponential", power = 1)
+plot_log_ppmr_fit(ppmr_data, fit)
 
-fit <- fit_log_ppmr(ppmr_data, species, distribution = "gaussian_mixture")
-plot_log_ppmr_fit(ppmr_data, fit) + ggtitle("Fit to number density")
+fit <- fit_log_ppmr(ppmr_data, species, distribution = "gaussian mixture")
+plot_log_ppmr_fit(ppmr_data, fit)
 
-fit <- fit_log_ppmr(ppmr_data, species, distribution = "gaussian_mixture",
+fit <- fit_log_ppmr(ppmr_data, species, distribution = "gaussian mixture",
                     power = 1)
-plot_log_ppmr_fit(ppmr_data, fit) + ggtitle("Fit to biomass density")
+plot_log_ppmr_fit(ppmr_data, fit)
