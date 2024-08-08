@@ -6,20 +6,20 @@
 #' @return An updated `fit` object
 #' @export
 transform_fit <- function(fit, power) {
-  fit <- validate_fit(fit)
-  if (!is.numeric(power) || length(power) != 1) {
-    stop("power must be a single numeric value")
-  }
-  power <- power - fit$power
-  if (fit$distribution == "normal") {
-    fit <- transform_normal(fit, power)
-  } else if (fit$distribution == "truncated_exponential") {
-    fit <- transform_truncated_exp(fit, power)
-  } else if (fit$distribution == "gaussian_mixture") {
-    fit <- transform_gaussian_mixture(fit, power)
-  }
-  fit$power <- power
-  return(fit)
+    fit <- validate_fit(fit)
+    if (!is.numeric(power) || length(power) != 1) {
+        stop("power must be a single numeric value")
+    }
+    power <- power - fit$power
+    if (fit$distribution == "normal") {
+        fit <- transform_normal(fit, power)
+    } else if (fit$distribution == "truncated_exponential") {
+        fit <- transform_truncated_exp(fit, power)
+    } else if (fit$distribution == "gaussian_mixture") {
+        fit <- transform_gaussian_mixture(fit, power)
+    }
+    fit$power <- power
+    return(fit)
 }
 
 #' Transform a normal distribution to represent data weighted by a power of w
@@ -30,8 +30,8 @@ transform_fit <- function(fit, power) {
 #' @export
 #' @keywords internal
 transform_normal <- function(fit, power = 1) {
-  fit$mean <- fit$mean - power * fit$sd^2
-  return(fit)
+    fit$mean <- fit$mean - power * fit$sd^2
+    return(fit)
 }
 
 #' Transform a truncated exponential distribution to represent data weighted by a power of w
@@ -42,8 +42,8 @@ transform_normal <- function(fit, power = 1) {
 #' @export
 #' @keywords internal
 transform_truncated_exp <- function(fit, power = 1) {
-  fit$alpha <- fit$alpha - power
-  return(fit)
+    fit$alpha <- fit$alpha - power
+    return(fit)
 }
 
 #' Transform a Gaussian mixture distribution to represent data weighted by a power of w
@@ -55,8 +55,8 @@ transform_truncated_exp <- function(fit, power = 1) {
 #' @export
 #' @keywords internal
 transform_gaussian_mixture <- function(fit, power = 1) {
-  fit$mean <- fit$mean - power * fit$sd^2
-  p <- fit$p * exp(-power * fit$mean + 0.5 * power^2 * fit$sd^2)
-  fit$p <- p / sum(p)
-  return(fit)
+    fit$mean <- fit$mean - power * fit$sd^2
+    p <- fit$p * exp(-power * fit$mean + 0.5 * power^2 * fit$sd^2)
+    fit$p <- p / sum(p)
+    return(fit)
 }

@@ -1,5 +1,5 @@
 #' Get density from a fit object
-#' 
+#'
 #' @param x A numeric vector of values at which to evaluate the density
 #' @param fit A fit object
 #' @return A numeric vector of densities
@@ -45,9 +45,9 @@ dtexp <- function(x, alpha, ll, ul, lr, ur) {
     if (is.null(integral_result)) {
         return(rep(NA, length(x)))
     }
-    
+
     d <- d / integral_result$value
-    
+
     if (any(d <= 0)) {
         stop("The density contains non-positive values when",
              " alpha = ", alpha, " ll = ", ll, " ul = ", ul,

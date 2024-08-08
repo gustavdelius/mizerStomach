@@ -9,21 +9,21 @@ library(readr)
 library(dplyr)
 
 selected_species <- c(
-  "sprat" = 126425,
-  "cod" = 126436,
-  "haddock" = 126437,
-  "blue whiting" = 126439
+    "sprat" = 126425,
+    "cod" = 126436,
+    "haddock" = 126437,
+    "blue whiting" = 126439
 )
 
 PredatorInformation <- read_csv("PredatorInformation.csv") |>
-  select(tblPredatorInformationID, AphiaIDPredator, IndWgt) |>
-  filter(!is.na(IndWgt))
+    select(tblPredatorInformationID, AphiaIDPredator, IndWgt) |>
+    filter(!is.na(IndWgt))
 
 PreyInformation <- read_csv("PreyInformation.csv") |>
-  select(tblPredatorInformationID, Count, Weight, UnitWgt) |>
-  filter(!is.na(Weight),
-         !is.na(UnitWgt),
-         !is.na(Count))
+    select(tblPredatorInformationID, Count, Weight, UnitWgt) |>
+    filter(!is.na(Weight),
+           !is.na(UnitWgt),
+           !is.na(Count))
 
 PreyInformation$Count[is.na(PreyInformation$Count)] <- 1
 
@@ -33,18 +33,18 @@ PreyInformation$Count[is.na(PreyInformation$Count)] <- 1
 
 ICES_data <- inner_join(PredatorInformation, PreyInformation,
                         by = "tblPredatorInformationID") |>
-  mutate(n_prey = Count,
-         w_prey = Weight,
-         w_pred = IndWgt,
-         log_ppmr = log(w_pred) - log(w_prey)) |>
-  select(AphiaIDPredator, w_pred, n_prey, w_prey, log_ppmr)
+    mutate(n_prey = Count,
+           w_prey = Weight,
+           w_pred = IndWgt,
+           log_ppmr = log(w_pred) - log(w_prey)) |>
+    select(AphiaIDPredator, w_pred, n_prey, w_prey, log_ppmr)
 
 # We used Worrms to look up common names for the aphia IDs
 species_dictionary <- data.frame(
-  AphiaID = unique(ICES_data$AphiaIDPredator),
-  species = c("cod", "whiting", "grey gurnard", "angler", "thornback ray",
-              "cuckoo ray", "horse mackerel", "turbot", "tub gurnard", "kite",
-              "halibut", "pollack", "hake", "ling", "plaice", "mackerel")
+    AphiaID = unique(ICES_data$AphiaIDPredator),
+    species = c("cod", "whiting", "grey gurnard", "angler", "thornback ray",
+                "cuckoo ray", "horse mackerel", "turbot", "tub gurnard", "kite",
+                "halibut", "pollack", "hake", "ling", "plaice", "mackerel")
 )
 
 ICES_data <- left_join(ICES_data, species_dictionary,
