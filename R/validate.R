@@ -95,24 +95,33 @@ validate_fit <- function(fit) {
 #'
 #' The data frame needs to have the columns "species", "w_pred", "w_prey" and
 #' "n_prey". The function adds a `log_ppmr` column to the data frame with the
-#' natural logarithm of the predator/prey mass ratio.
+#' natural logarithm of the predator/prey mass ratio. If the `species` argument
+#' is supplied the function then only selects the rows for the specified
+#' species. If the species is not found, an error is raised.
 #'
 #' If a `log_ppmr` column already exists, it is overwritten and a warning is
 #' issued if discrepancies were found. A warning is also issued if any prey
 #' is heavier than the predator.
 #'
 #' @param ppmr_data A data frame with log ppmr observations
+#' @param species The species to select. Optional.
 #' @return Valid ppmr data frame with columns "species", "w_pred", "w_prey",
 #'  "n_prey" and "log_ppmr"
 #' @family validation functions
 #' @export
-validate_ppmr_data <- function(ppmr_data) {
+validate_ppmr_data <- function(ppmr_data, species = NULL) {
   if (!is.data.frame(ppmr_data)) {
     stop("ppmr data must be a data frame")
   }
   varnames <- c("species", "w_pred", "w_prey", "n_prey")
   if (!all(varnames %in% names(ppmr_data))) {
     stop("ppmr data must have the columns ", paste(varnames, collapse = ", "))
+  }
+  if (!is.null(species)) {
+    if (!species %in% unique(ppmr_data$species)) {
+      stop("Species", fit$species, "not found in ppmr data")
+    }
+    ppmr_data <- ppmr_data[ppmr_data$species == species, ]
   }
   if (any(ppmr_data$w_prey > ppmr_data$w_pred)) {
     warning("Some prey are heavier than the predator")
