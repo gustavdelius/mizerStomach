@@ -7,11 +7,9 @@
 #' @param fit A list with the fitted distribution parameters
 #' @export
 plot_log_ppmr_fit <- function(ppmr_data, fit) {
-    ppmr_data <- validate_ppmr_data(ppmr_data)
     fit <- validate_fit(fit)
-    if (!fit$species %in% unique(ppmr_data$species)) {
-        stop("Species", fit$species, "not found in ppmr data")
-    }
+    ppmr_data <- validate_ppmr_data(ppmr_data, species = fit$species) |>
+        filter(species == !!fit$species)
     ppmr_data$biomass <- ppmr_data$n_prey * ppmr_data$w_prey
     lmin <- Hmisc::wtd.quantile(ppmr_data$log_ppmr, ppmr_data$biomass, 0.001)
     lmax <- Hmisc::wtd.quantile(ppmr_data$log_ppmr, ppmr_data$n_prey, 0.999)
@@ -39,7 +37,7 @@ plot_log_ppmr_fit <- function(ppmr_data, fit) {
 plot_ppmr_violins <- function(ppmr_data, species, power = 1) {
     stomach_binned <- ppmr_data |>
         validate_ppmr_data(species = species) |>
-        filter(species == species) |>
+        filter(species == !!species) |>
         # bin data
         # We need to wiggle the data a bit to avoid
         # duplicates which `cut_number()` does not like

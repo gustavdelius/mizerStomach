@@ -5,6 +5,7 @@
 #' @param species A character string with the species name
 #' @param distribution The distribution to fit. One of "normal",
 #'   "truncated_exponential" or "gaussian_mixture".
+#' @param min_w_pred The minimum predator weight to include. Default is 0.
 #' @param power Each observation is weighted by a power of the prey weight. The
 #'   default is 0 which means that each prey individual contributes equally.
 #'   `power = 1` means each prey individual contributes in proportion to its
@@ -14,13 +15,15 @@
 fit_log_ppmr <-
   function(ppmr_data, species,
            distribution = c("normal", "truncated_exponential", "gaussian_mixture"),
-           power = 0) {
+           min_w_pred = 0, power = 0) {
     distribution <- match.arg(distribution)
     ppmr_data <- validate_ppmr_data(ppmr_data)
     if (!species %in% unique(ppmr_data$species)) {
       stop("Species", fit$species, "not found in ppmr data")
     }
-    data <- ppmr_data[ppmr_data$species == species, ]
+    data <- ppmr_data |>
+        filter(species == !!species,
+               w_pred >= min_w_pred)
     value <- data$log_ppmr
     weight <- data$n_prey * data$w_prey ^ power
 
@@ -88,18 +91,18 @@ fit_truncated_exponential <- function(value, weight) {
 #'   is a vector with one entry for each component of the mixture
 #' @export
 #' @keywords internal
-fit_gaussian_mixture <- function(value, weight, 
+fit_gaussian_mixture <- function(value, weight,
                                  k = 2, max_iter = 100, tol = 1e-6) {
     validate_weighted_observations(value, weight)
     n <- length(value)
-    
+
     # Initialize parameters
     lambda <- rep(1/k, k)
     mu <- seq(min(value), max(value), length.out = k)
     sigma <- rep(sd(value), k)
-    
+
     log_likelihood <- numeric(max_iter)
-    
+
     for (iter in 1:max_iter) {
         # E-step: Calculate responsibilities
         gamma <- matrix(0, nrow = n, ncol = k)
@@ -107,7 +110,7 @@ fit_gaussian_mixture <- function(value, weight,
             gamma[, j] <- lambda[j] * dnorm(value, mean = mu[j], sd = sigma[j])
         }
         gamma <- gamma / rowSums(gamma)
-        
+
         # M-step: Update parameters with weights
         for (j in 1:k) {
             w_gamma <- weight * gamma[, j]
@@ -115,16 +118,16 @@ fit_gaussian_mixture <- function(value, weight,
             mu[j] <- sum(w_gamma * value) / sum(w_gamma)
             sigma[j] <- sqrt(sum(w_gamma * (value - mu[j])^2) / sum(w_gamma))
         }
-        
+
         # Calculate log-likelihood
         log_likelihood[iter] <- sum(weight * log(rowSums(gamma)))
-        
+
         # Check for convergence
-        if (iter > 1 && 
+        if (iter > 1 &&
             abs(log_likelihood[iter] - log_likelihood[iter - 1]) < tol) {
             break
         }
     }
-    
+
     list(p = lambda, mean = mu, sd = sigma)
 }
