@@ -43,13 +43,13 @@ validate_fit <- function(fit) {
         stop("fit must have a `species` attribute")
     }
     if (!hasName(fit, "power")) {
-        stop("fit must have a `power` attribute")
+        fit$power <- 0
     }
     if (!hasName(fit, "distribution")) {
         stop("fit must have a `distribution` attribute")
     }
     if (!hasName(fit, "min_w_pred")) {
-        stop("fit must have a `min_w_pred` attribute")
+        fit$min_w_pred <- 0
     }
     if (fit$distribution == "normal") {
         if (!hasName(fit, "mean")) {
