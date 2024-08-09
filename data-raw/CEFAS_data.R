@@ -9,11 +9,24 @@ ppmr_data <- stom_df |>
               n_prey = nprey_perpred,
               log_ppmr = log(ppmr)) |>
     filter(w_pred > 0, w_prey > 0, n_prey > 0) |>
-    na.omit()
+    na.omit() |>
+    validate_ppmr_data()
 
-ppmr_data <- validate_ppmr_data(ppmr_data)
+predators <- c(
+    Herring = "Clupea harengus",
+    Cod = "Gadus morhua",
+    Haddock = "Melanogrammus aeglefinus",
+    Whiting = "Merlangius merlangus",
+    "Blue whiting" = "Micromesistius poutassou",
+    Hake = "Merluccius merluccius",
+    Monkfish = "Lophius piscatorius",
+    Mackerel = "Scomber scombrus",
+    Plaice = "Pleuronectes platessa",
+    Megrim = "Lepidorhombus whiffiagonis",
+    Sole = "Solea solea"
+)
 
-species <- "Gadus morhua"
+species <- predators["Herring"]
 
 plot_ppmr_violins(ppmr_data, species)
 
@@ -27,13 +40,13 @@ plot_log_ppmr_fit(ppmr_data, fit1)
 fit0 <- fit_log_ppmr(ppmr_data, species , distribution = "trunc_exp")
 plot_log_ppmr_fit(ppmr_data, fit0)
 
-# Fit to biomass
-fit1 <- fit_log_ppmr(ppmr_data, species,
-                     distribution = "trunc_exp",
+fit1 <- fit_log_ppmr(ppmr_data, species, distribution = "trunc_exp",
                      power = 1)
 plot_log_ppmr_fit(ppmr_data, fit1)
 
 species <- "Merluccius merluccius"
+
+plot_ppmr_violins(ppmr_data, species)
 
 fit <- fit_log_ppmr(ppmr_data, species, distribution = "normal")
 plot_log_ppmr_fit(ppmr_data, fit)
