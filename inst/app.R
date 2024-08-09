@@ -28,16 +28,27 @@ predators <- c(
     Sole = "Solea solea"
 )
 
+fits <- data.frame(
+    species = predators,
+    alpha = 0,
+    ll = 3,
+    ul = 5,
+    lr = 15,
+    ur = 5,
+    distribution = "trunc_exp",
+    min_w_pred = 0
+)
+rownames(fits) <- fits$species
+
 # Define UI
 ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
-            selectInput("species", "Species", predators),
-            sliderInput("alpha", "alpha", min = -2, max = 1, value = 0, step = 0.05),
-            sliderInput("ll", "ll", min = 0, max = 7, value = 2, step = 0.1),
-            sliderInput("ul", "ul", min = 0.1, max = 10, value = 5, step = 0.1),
-            sliderInput("lr", "lr", min = 4, max = 18, value = 15, step = 0.1),
-            sliderInput("ur", "ur", min = 0.1, max = 10, value = 5, step = 0.1)
+            downloadButton("download_params", "Download"),
+            actionButton("done", "Return", icon = icon("check"),
+                         onclick = "setTimeout(function(){window.close();},500);"),
+            uiOutput("sp_sel"),
+            uiOutput("sp_params")
         ),
         mainPanel(
             plotOutput("distPlot")
@@ -47,17 +58,75 @@ ui <- fluidPage(
 
 # Define server logic
 server <- function(input, output) {
+    # Flags to skip certain observers ----
+    flags <- new.env()
+
+    rownames(fits) <- fits$species
+    fits <- reactiveVal(fits)
+
+    output$sp_sel <- renderUI({
+        fits <- isolate(fits())
+        species <- as.character(fits$species)
+        tagList(
+            selectInput("sp", "Species to tune:", species)
+        )
+    })
+
+    output$sp_params <- renderUI({
+        # The parameter sliders get updated whenever the species selector
+        # changes
+        req(input$sp)
+        f <- isolate(fits())
+        f <- f[input$sp, ]
+        tagList(
+            sliderInput("alpha", "alpha", min = -2, max = 1, value = f$alpha, step = 0.05),
+            sliderInput("ll", "ll", min = 0, max = 7, value = f$ll, step = 0.1),
+            sliderInput("ul", "ul", min = 0.1, max = 10, value = f$ul, step = 0.1),
+            sliderInput("lr", "lr", min = 4, max = 18, value = f$lr, step = 0.1),
+            sliderInput("ur", "ur", min = 0.1, max = 10, value = f$ur, step = 0.1)
+        )
+    })
+
+    ## Prepare for download of fits object ####
+    output$download_params <- downloadHandler(
+        filename = "fits.rds",
+        content = function(file) {
+            saveRDS(fits(), file = file)
+        })
+
+    ## Return ####
+    # When the user hits the "Return" button we want to
+    # return with the latest fits object
+    observeEvent(input$done, {
+        stopApp(fits())
+    })
+
+    ## Plot ----
     output$distPlot <- renderPlot({
-        fit <- list(alpha = input$alpha,
-                    ll = input$ll, ul = input$ul,
-                    lr = input$lr, ur = input$ur,
-                    species = input$species,
-                    distribution = "trunc_exp",
-                    power = 1,
-                    min_w_pred = 0) |>
-            validate_fit()
+        req(input$sp)
+        f <- fits()
+        fit <- as.list(f[input$sp, ])
 
         plot_log_ppmr_fit(ppmr_data, fit)
+    })
+
+    ## Update parameters ----
+    observe({
+        req(input$alpha, input$ll, input$ul, input$lr, input$ur)
+        # Update the fits object whenever the user changes the parameters
+        f <- isolate(fits())
+        sp <- isolate(input$sp)
+        if (!identical(sp, flags$sp_old)) {
+            flags$sp_old <- sp
+            return()
+        }
+        print("trigger")
+        f[sp, "alpha"] <- input$alpha
+        f[sp, "ll"] <- input$ll
+        f[sp, "ul"] <- input$ul
+        f[sp, "lr"] <- input$lr
+        f[sp, "ur"] <- input$ur
+        fits(f)
     })
 }
 
