@@ -12,8 +12,8 @@ plot_log_ppmr_fit <- function(ppmr_data, fit) {
         filter(species == !!fit$species,
                w_pred >= fit$min_w_pred)
     ppmr_data$biomass <- ppmr_data$n_prey * ppmr_data$w_prey
-    lmin <- Hmisc::wtd.quantile(ppmr_data$log_ppmr, ppmr_data$biomass, 0.001)
-    lmax <- Hmisc::wtd.quantile(ppmr_data$log_ppmr, ppmr_data$n_prey, 0.999)
+    lmin <- max(0, Hmisc::wtd.quantile(ppmr_data$log_ppmr, ppmr_data$biomass, 0.001) - 2)
+    lmax <- Hmisc::wtd.quantile(ppmr_data$log_ppmr, ppmr_data$n_prey, 0.999) + 2
     grid = seq(lmin, lmax, length.out = 200)
     fit0 <- transform_fit(fit, 0)
     dist0 <- data.frame(log_ppmr = grid, Density = get_density(grid, fit0))
