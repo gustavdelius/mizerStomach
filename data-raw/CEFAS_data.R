@@ -26,6 +26,18 @@ predators <- c(
     Sole = "Solea solea"
 )
 
+fits <- data.frame()
+for (predator in predators) {
+    tryCatch({
+        fit <- fit_log_ppmr(ppmr_data, species = predator,
+                                          distribution = "trunc_exp")
+    }, error = function(e) {
+        warning("The fit did no succeed for ", predator, ": ", e)
+    })
+    fits <- rbind(fits, fit)
+}
+rownames(fits) <- fits$species
+
 species <- predators["Herring"]
 
 plot_ppmr_violins(ppmr_data, species)
