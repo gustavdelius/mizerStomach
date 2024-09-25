@@ -22,6 +22,7 @@ predators <- c(
     "Blue whiting" = "Micromesistius poutassou",
     Hake = "Merluccius merluccius",
     Monkfish = "Lophius piscatorius",
+    "Horse mackerel" = "Trachurus trachurus",
     Mackerel = "Scomber scombrus",
     Plaice = "Pleuronectes platessa",
     Megrim = "Lepidorhombus whiffiagonis",
