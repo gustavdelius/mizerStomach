@@ -98,18 +98,18 @@ validate_fit <- function(fit) {
 #'
 #' The data frame needs to have the columns "species", "w_pred", "w_prey" and
 #' "n_prey". The function adds a `log_ppmr` column to the data frame with the
-#' natural logarithm of the predator/prey mass ratio. If the `species` argument
-#' is supplied the function then only selects the rows for the specified
-#' species. If the species is not found, an error is raised.
+#' logarithm of the predator/prey mass ratio.
 #'
 #' If a `log_ppmr` column already exists, it is overwritten and a warning is
 #' issued if discrepancies were found. A warning is also issued if any prey
 #' is heavier than the predator.
 #'
 #' @param ppmr_data A data frame with log ppmr observations
-#' @param species The species to select. Optional.
+#' @param species The species to select. Optional. If supplied the function only
+#'   selects the rows for the specified species. If the species is not found, an
+#'   error is raised.
 #' @return Valid ppmr data frame with columns "species", "w_pred", "w_prey",
-#'  "n_prey" and "log_ppmr"
+#'  "n_prey" and "log_ppmr" and rows for the specified species.
 #' @family validation functions
 #' @export
 validate_ppmr_data <- function(ppmr_data, species = NULL) {
