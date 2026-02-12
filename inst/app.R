@@ -15,6 +15,8 @@ ppmr_data <- stom_df |>
     mizerStomach::validate_ppmr_data()
 
 predators <- c(
+    "Red gurnard" = "Chelidonichthys cuculus",
+    Boarfish = "Capros aper",
     Herring = "Clupea harengus",
     Cod = "Gadus morhua",
     Haddock = "Melanogrammus aeglefinus",
