@@ -1,0 +1,121 @@
+# Feeding kernels from stomach distributions
+
+## Feeding kernel
+
+Now we will discuss how the stomach content is related to the feeding
+kernel.
+
+The stomach content is the result of a balance between the rate at which
+prey items are ingested and the rate at which they are digested. So we
+start by looking at ingestion and digestion rates.
+
+### Ingestion
+
+The rate density $`I(w|w')`$ at which a predator of size $`w'`$ swallows
+prey of size $`w`$ is proportional to the product of the feeding kernel
+$`\phi(w'/w)`$ and the prey number density $`N_c(w)`$:
+``` math
+
+I(w|w') = i(w') \phi(w'/w)\ N_c(w)
+```
+This is a rate density, fin the sense that if one integrates this over a
+range of prey sizes one gets the rate at which the predator swallows
+individuals from this size range.
+
+The proportionality constant $`i(w')`$ only depends on the predator size
+$`w'`$ and, as we will see, we will not need it in our analysis. The
+prey number density $`N_c(w)`$ is defined as usual such that
+$`N_c(w)dw`$ is the total number of potential prey items with sizes
+between $`w`$ and $`w+dw`$.
+
+In a multi-species model in which the predator has different interaction
+strengths with different prey species, given by an interaction matrix
+$`\theta_{ij}`$, the prey number density for a predator of species $`i`$
+would be obtained from the number densities $`N_j(w)`$ of individual
+prey species as
+``` math
+
+N_c(w) = \sum_j \theta_{ij}N_j(w).
+```
+Of course, we do not know the prey density that the predators
+experienced that were sampled in the stomach observation. So the best we
+can do is to assume that it was reasonably close to the Sheldon spectrum
+``` math
+
+N_c(w) = n_c\ w^{-\lambda}
+```
+with $`\lambda \approx 2`$.
+
+### Digestion
+
+Prey items will stay identifiable in the predator stomach only for a
+certain period of time before they disintegrate. After that time they
+will not contribute to the observation of prey items in the stomach. Of
+course we do not know in detail the rate at which prey items are
+digested. However it is reasonable to make the approximation that the
+rate at which a prey item has its body mass digested away scales with
+body size as $`w^{2/3}`$ because digestion acts on the surface of the
+prey item and this surface scales approximately as $`w^{2/3}`$. Let us
+assume that a prey item becomes unidentifiable when a fixed percentage
+of its body mass is digested. The time until that has happened is
+proportional to the body mass divided by the rate at which mass is
+digested: $`T\propto w/w^{2/3} = w^{1/3}`$. The rate at which a prey
+item of size $`w`$ disintegrate is equal to the inverse of the
+disintegration time. Denoting that rate by $`D(w)`$ we have
+``` math
+
+D(w) = d\ w^{-1/3}.
+```
+The proportionality constant $`d`$ will not be important in what
+follows.
+
+### Balance equation
+
+We describe the size distribution of prey in stomachs of predators of
+size $`w'`$ by the density function $`N_w(w|w')`$. See the [Density
+functions](density_functions.md) vignette for a discussion of this
+density function.
+
+The observed stomach content is such that the rate at which prey items
+of a particular size are ingested is equal to the rate at which such
+items disintegrates due to digestion and thus
+$`I(w|w') = D(w)N_w(w|w')`$. Using our expressions for these rates we
+obtain
+``` math
+
+i(w') \phi(w'/w)\ n_c\ w^{-\lambda} = d\ w^{-1/3} N_w(w|w').
+```
+This we can solve for the feeding kernel:
+``` math
+
+\phi(w'/w) = \frac{d}{i(w')\,n_c}\ w^{\lambda - 1/3}N_w(w|w').
+```
+Using further that (see [Density functions](density_functions.md))
+``` math
+
+N_w(w|w') \propto e^lf_l(l)
+```
+where $`l=\log(w'/w)`$ and $`w\propto e^{- l}`$, we find
+``` math
+
+\phi(w'/w) \propto e^{(4/3 - \lambda)l}f_l(l)
+```
+This tells us that if the stomach distribution $`f_l(l)`$ is described
+by the truncated exponential distribution with rate $`\alpha`$, the
+feeding kernel as a function of $`l`$ is described by the truncated
+exponential distribution with rate $`\alpha + 4/3 - \lambda`$.
+
+If the stomach distribution $`f_l(l)`$ is the normal distribution with
+mean $`\mu`$ and variance $`\sigma^2`$ then the feeding kernel as a
+function of $`l`$ is also a Gaussian with the same variance and with
+mean $`\mu + (4/3 - \lambda)\sigma^2`$.
+
+We assume that on average the stomach observations reflect the steady
+state with $`dN/dt=0`$. We now substitute our expressions for the
+various rates into the resulting balance equation:
+``` math
+
+0 = i(w') \phi(w'/w)\ w^{-\lambda} 
++ \frac{\partial}{\partial_w}\left(d(w')w^{2/3}N_w(w|w')\right)
+- u(w')w^{-1/3}N_w(w|w')
+```

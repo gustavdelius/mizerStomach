@@ -1,0 +1,10 @@
+pandoc: 3.6.3
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  density_functions: density_functions.html
+  feeding_kernels: feeding_kernels.html
+  mizerStomach: mizerStomach.html
+  PPMR_distributions: PPMR_distributions.html
+  size_selectivity: size_selectivity.html
+last_built: 2026-03-19T12:36Z
