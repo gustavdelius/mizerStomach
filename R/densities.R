@@ -29,6 +29,7 @@ get_density <- function(x, fit) {
 #' @param lr location of upper sigmoid
 #' @param ur steepness of upper sigmoid
 #' @return A numeric vector of densities
+#' @keywords internal
 #' @export
 dtexp <- function(x, alpha, ll, ul, lr, ur) {
     d <- fl(x, alpha, ll, ul, lr, ur)

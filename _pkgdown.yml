@@ -2,3 +2,18 @@ url: ~
 template:
   bootstrap: 5
 
+reference:
+- title: Fitting
+- contents:
+  - fit_log_ppmr
+  - transform_fit
+  - get_density
+- title: Plotting
+  contents:
+  - starts_with("plot")
+- title: Validation
+  contents:
+  - has_concept("validation functions")
+- title: Internals
+  contents:
+  - has_keyword("internal")
