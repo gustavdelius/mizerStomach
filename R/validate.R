@@ -11,7 +11,7 @@
 #' @keywords internal
 #' @family validation functions
 validate_weighted_observations <- function(value, weight) {
-    if (length(value) < 100) {
+    if (length(value) < 10) {
         stop("Not enough data to fit a distribution")
     }
     if (length(value) != length(weight)) {
