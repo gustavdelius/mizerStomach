@@ -60,8 +60,8 @@ the resulting fit for the biomass distribution may be very wrong.
 Mariella Canales has shared with us data of stomach content for anchovy and sardine.
 ```{r message=FALSE, warning=FALSE}
 #| code-fold: true
-ppmr_data <- read_csv("../../stomach_data/data/AnchovyAndSardine.csv") 
-head(ppmr_data)
+stomach <- read_csv("../../stomach_data/data/AnchovyAndSardine.csv") 
+head(stomach)
 ```
 
 The `wprey` variable is the typical weight of an individual of a particular prey
