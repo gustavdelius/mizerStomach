@@ -99,6 +99,50 @@ fit_log_ppmr <-
     return(result)
   }
 
+#' Extract fit parameters from mizer model
+#'
+#' Extracts distribution parameters from a mizer params object
+#' and returns a `fits` data frame compatible with [fit_log_ppmr()].
+#'
+#' The `pred_kernel_type` column is mapped as: `"lognormal"` → `"normal"`,
+#' `"power_law"` → `"trunc_exp"`. Gaussian mixture distribution is not yet
+#' supported
+#'
+#' @param params A MizerParams object
+#' @return A fit data frame with `power = 2/3` and distribution parameters
+#'   populated from `species_params`. Only the parameters relevant to each
+#'   species' distribution are filled; others are `NA`.
+#' @export
+extract_fit <- function(params) {
+  species_params <- params@species_params
+  dist_map <- c(lognormal = "normal", power_law = "trunc_exp")
+  distribution <- unname(dist_map[species_params$pred_kernel_type])
+  if (anyNA(distribution)) {
+    unknown <- unique(species_params$pred_kernel_type[is.na(distribution)])
+    stop("Unknown pred_kernel_type: ", paste(unknown, collapse = ", "))
+  }
+
+  is_normal   <- distribution == "normal"
+  is_trunc    <- distribution == "trunc_exp"
+
+  fits <- data.frame(
+    species      = species_params$species,
+    distribution = distribution,
+    power        = 2/3,
+    min_w_pred   = 0,
+    mean         = ifelse(is_normal, log(species_params$beta),    NA_real_),
+    sd           = ifelse(is_normal, species_params$sigma,        NA_real_),
+    alpha        = ifelse(is_trunc,  species_params$kernel_exp,   NA_real_),
+    ll           = ifelse(is_trunc,  species_params$kernel_l_l,   NA_real_),
+    ul           = ifelse(is_trunc,  species_params$kernel_u_l,   NA_real_),
+    lr           = ifelse(is_trunc,  species_params$kernel_l_r,   NA_real_),
+    ur           = ifelse(is_trunc,  species_params$kernel_u_r,   NA_real_),
+    stringsAsFactors = FALSE
+  )
+  rownames(fits) <- fits$species
+  return(fits)
+}
+
 #' Fit a normal distribution to weighted observations
 #'
 #' @param value A numeric vector of observed values
