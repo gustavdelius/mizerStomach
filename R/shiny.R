@@ -79,12 +79,14 @@ fit_shiny <- function(ppmr_data,
     ui <- shiny::fluidPage(
         shiny::sidebarLayout(
             shiny::sidebarPanel(
+                shiny::actionButton("reset_btn", "Reset", icon = shiny::icon("fast-backward")),
                 shiny::downloadButton("download_params", "Download"),
                 shiny::actionButton(
                     "done", "Return", icon = shiny::icon("check"),
                     onclick = "setTimeout(function(){window.close();},500);"
                 ),
                 shiny::actionButton("fit_btn", "Fit", icon = shiny::icon("play")),
+                shiny::actionButton("undo_btn", "Undo", icon = shiny::icon("undo")),
                 shiny::uiOutput("sp_sel"),
                 shiny::radioButtons(
                     "dist", "Distribution:",
@@ -113,8 +115,34 @@ fit_shiny <- function(ppmr_data,
         flags <- new.env()
         flags$key_old <- NULL
 
-        cache_rv    <- shiny::reactiveVal(fits_cache)
-        sel_dist_rv <- shiny::reactiveVal(sel_dist_init)
+        cache_rv      <- shiny::reactiveVal(fits_cache)
+        sel_dist_rv   <- shiny::reactiveVal(sel_dist_init)
+        undo_stack_rv <- shiny::reactiveVal(list())
+
+        push_undo <- function() {
+            stack <- shiny::isolate(undo_stack_rv())
+            stack[[length(stack) + 1]] <- shiny::isolate(cache_rv())
+            undo_stack_rv(stack)
+        }
+
+        update_sliders_from_fit <- function(fit, dist) {
+            if (dist == "trunc_exp") {
+                shiny::updateSliderInput(session, "alpha", value = fit$alpha)
+                shiny::updateSliderInput(session, "ll",    value = fit$ll)
+                shiny::updateSliderInput(session, "ul",    value = fit$ul)
+                shiny::updateSliderInput(session, "lr",    value = fit$lr)
+                shiny::updateSliderInput(session, "ur",    value = fit$ur)
+            } else if (dist == "normal") {
+                shiny::updateSliderInput(session, "mean", value = fit$mean)
+                shiny::updateSliderInput(session, "sd",   value = fit$sd)
+            } else {
+                shiny::updateSliderInput(session, "p1",    value = fit$p[[1]][1])
+                shiny::updateSliderInput(session, "mean1", value = fit$mean[[1]][1])
+                shiny::updateSliderInput(session, "sd1",   value = fit$sd[[1]][1])
+                shiny::updateSliderInput(session, "mean2", value = fit$mean[[1]][2])
+                shiny::updateSliderInput(session, "sd2",   value = fit$sd[[1]][2])
+            }
+        }
 
         # Helper: return the current single-row fit (isolating reactive reads)
         current_fit_isolated <- function() {
@@ -177,32 +205,60 @@ fit_shiny <- function(ppmr_data,
             f    <- shiny::isolate(cache_rv())[[input$sp]][[input$dist]]
             dist <- input$dist
             if (is.null(f)) f <- make_default_fit(input$sp, dist)
+            sp_data <- ppmr_data[ppmr_data$species == input$sp, ]
+            if (nrow(sp_data) > 0) {
+                data_min <- floor(min(sp_data$log_ppmr) * 10) / 10
+                data_max <- ceiling(max(sp_data$log_ppmr) * 10) / 10
+            } else {
+                data_min <- 0
+                data_max <- 18
+            }
             if (dist == "trunc_exp") {
                 shiny::tagList(
-                    shiny::sliderInput("alpha", "power-law exponent", min = -2,
-                                       max = 1, value = f$alpha, step = 0.05),
+                    shiny::sliderInput("alpha", "power-law exponent", min = -1,
+                                       max = 2, value = f$alpha, step = 0.05),
                     shiny::sliderInput("ll", "location of left sigmoid",
-                                       min = 0, max = 7,  value = f$ll, step = 0.1),
+                                       min = data_min, max = data_max,
+                                       value = min(max(f$ll, data_min), data_max),
+                                       step = 0.1),
                     shiny::sliderInput("ul", "shape of left sigmoid",
                                        min = 0.1, max = 10, value = f$ul,
                                        step = 0.1),
                     shiny::sliderInput("lr", "location of right sigmoid",
-                                       min = 4, max = 18, value = f$lr, step = 0.1),
+                                       min = data_min, max = data_max,
+                                       value = min(max(f$lr, data_min), data_max),
+                                       step = 0.1),
                     shiny::sliderInput("ur", "shape of right sigmoid",
                                        min = 0.1, max = 10, value = f$ur, step = 0.1)
                 )
             } else if (dist == "normal") {
                 shiny::tagList(
-                    shiny::sliderInput("mean", "mean", min = 0,   max = 15, value = f$mean, step = 0.1),
-                    shiny::sliderInput("sd",   "sd",   min = 0.1, max = 8,  value = f$sd,   step = 0.1)
+                    shiny::sliderInput("mean", "mean", min = data_min, max = data_max,
+                                       value = min(max(f$mean, data_min), data_max),
+                                       step = 0.1),
+                    shiny::sliderInput("sd",   "sd",   min = 0.1,
+                                       max = data_max - data_min,
+                                       value = min(f$sd, data_max - data_min),
+                                       step = 0.1)
                 )
             } else {  # gauss_mix
                 shiny::tagList(
-                    shiny::sliderInput("p1",    "p (left component)", min = 0,   max = 1,  value = f$p[[1]][1],    step = 0.01),
-                    shiny::sliderInput("mean1", "mean left",          min = 0,   max = 15, value = f$mean[[1]][1], step = 0.1),
-                    shiny::sliderInput("sd1",   "sd left",            min = 0.1, max = 8,  value = f$sd[[1]][1],   step = 0.1),
-                    shiny::sliderInput("mean2", "mean right",         min = 0,   max = 15, value = f$mean[[1]][2], step = 0.1),
-                    shiny::sliderInput("sd2",   "sd right",           min = 0.1, max = 8,  value = f$sd[[1]][2],   step = 0.1)
+                    shiny::sliderInput("p1",    "p (left component)", min = 0, max = 1,
+                                       value = f$p[[1]][1], step = 0.01),
+                    shiny::sliderInput("mean1", "mean left",  min = data_min, max = data_max,
+                                       value = min(max(f$mean[[1]][1], data_min), data_max),
+                                       step = 0.1),
+                    shiny::sliderInput("sd1",   "sd left",    min = 0.1,
+                                       max = data_max - data_min,
+                                       value = min(f$sd[[1]][1], data_max - data_min),
+                                       step = 0.1),
+                    shiny::sliderInput("mean2", "mean right", min = data_min, max = data_max,
+                                       value = min(max(f$mean[[1]][2], data_min), data_max),
+                                       step = 0.1),
+                    shiny::sliderInput("sd2",   "sd right",   min = 0.1,
+                                       max = data_max - data_min,
+                                       value = min(f$sd[[1]][2], data_max - data_min),
+                                       step = 0.1)
                 )
             }
         })
@@ -252,6 +308,7 @@ fit_shiny <- function(ppmr_data,
                 flags$key_old <- key
                 return()
             }
+            push_undo()
             cache <- shiny::isolate(cache_rv())
             if (dist == "trunc_exp") {
                 shiny::req(alpha, ll, ul, lr, ur)
@@ -278,6 +335,7 @@ fit_shiny <- function(ppmr_data,
             sp   <- input$sp
             dist <- input$dist
             if (!sp %in% ppmr_data$species) return()
+            push_undo()
             cache <- cache_rv()
             tryCatch({
                 new_fit <- if (dist == "trunc_exp") {
@@ -288,26 +346,35 @@ fit_shiny <- function(ppmr_data,
                 }
                 cache[[sp]][[dist]] <- new_fit
                 cache_rv(cache)
-                if (dist == "trunc_exp") {
-                    shiny::updateSliderInput(session, "alpha", value = new_fit$alpha)
-                    shiny::updateSliderInput(session, "ll",    value = new_fit$ll)
-                    shiny::updateSliderInput(session, "ul",    value = new_fit$ul)
-                    shiny::updateSliderInput(session, "lr",    value = new_fit$lr)
-                    shiny::updateSliderInput(session, "ur",    value = new_fit$ur)
-                } else if (dist == "normal") {
-                    shiny::updateSliderInput(session, "mean", value = new_fit$mean)
-                    shiny::updateSliderInput(session, "sd",   value = new_fit$sd)
-                } else {  # gauss_mix
-                    shiny::updateSliderInput(session, "p1",    value = new_fit$p[[1]][1])
-                    shiny::updateSliderInput(session, "mean1", value = new_fit$mean[[1]][1])
-                    shiny::updateSliderInput(session, "sd1",   value = new_fit$sd[[1]][1])
-                    shiny::updateSliderInput(session, "mean2", value = new_fit$mean[[1]][2])
-                    shiny::updateSliderInput(session, "sd2",   value = new_fit$sd[[1]][2])
-                }
+                update_sliders_from_fit(new_fit, dist)
             }, error = function(e) {
                 shiny::showNotification(paste("Fit failed:", conditionMessage(e)),
                                         type = "error")
             })
+        })
+
+        shiny::observeEvent(input$reset_btn, {
+            push_undo()
+            cache_rv(fits_cache)
+            sel_dist_rv(sel_dist_init)
+            sp   <- shiny::isolate(input$sp)
+            dist <- sel_dist_init[[sp]]
+            shiny::updateRadioButtons(session, "dist", selected = dist)
+            fit  <- fits_cache[[sp]][[dist]]
+            if (!is.null(fit)) update_sliders_from_fit(fit, dist)
+        })
+
+        shiny::observeEvent(input$undo_btn, {
+            stack <- undo_stack_rv()
+            shiny::req(length(stack) > 0)
+            prev_cache <- stack[[length(stack)]]
+            stack[[length(stack)]] <- NULL
+            undo_stack_rv(stack)
+            cache_rv(prev_cache)
+            sp   <- shiny::isolate(input$sp)
+            dist <- shiny::isolate(input$dist)
+            fit  <- prev_cache[[sp]][[dist]]
+            if (!is.null(fit)) update_sliders_from_fit(fit, dist)
         })
     }
 
