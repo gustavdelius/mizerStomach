@@ -114,14 +114,14 @@ fit_shiny <- function(ppmr_data,
                 shiny::uiOutput("sp_params")
             ),
             shiny::mainPanel(
+                shiny::plotOutput("distPlot"),
+                shiny::uiOutput("fitting_indicator"),
                 shiny::radioButtons(
                     "plot_type", NULL,
                     choices  = c("Kernel" = "kernel", "Histogram" = "histogram"),
-                    selected = "kernel",
+                    selected = "histogram",
                     inline   = TRUE
-                ),
-                shiny::plotOutput("distPlot"),
-                shiny::uiOutput("fitting_indicator")
+                )
             )
         )
     )
