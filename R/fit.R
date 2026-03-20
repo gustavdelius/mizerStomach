@@ -2,7 +2,8 @@
 #'
 #' @param ppmr_data A data frame with log ppmr observations. See
 #'   [validate_ppmr_data()] for details.
-#' @param species A character vector with one or more species names.
+#' @param species A character vector with one or more species names. Ignored
+#'   if `fits` is provided.
 #' @param distribution The distribution to fit. One of "normal",
 #'   "trunc_exp" or "gauss_mix".
 #' @param min_w_pred The minimum predator weight to include. Default is 0.
@@ -10,6 +11,11 @@
 #'   default is 0 which means that each prey individual contributes equally.
 #'   `power = 1` means each prey individual contributes in proportion to its
 #'   biomass.
+#' @param fits An optional fit data frame (as returned by [fit_log_ppmr()]).
+#'   When provided, the species are taken from `fits` instead of the `species`
+#'   argument. For `distribution = "trunc_exp"`, the fitted parameters in
+#'   `fits` are used as starting values for the `mle2()` optimisation (only
+#'   when the corresponding row in `fits` also has `distribution = "trunc_exp"`).
 #' @return A fit data frame with one row per species.
 #'   See [validate_fit()] for details.
 #' @examples
@@ -27,6 +33,11 @@
 #' # Fit a truncated exponential distribution
 #' fit_te <- fit_log_ppmr(barnes_data, "Albacore", distribution = "trunc_exp")
 #' fit_te
+#'
+#' # Refit using previous fit as starting point
+#' fit_te2 <- fit_log_ppmr(barnes_data, distribution = "trunc_exp",
+#'                          fits = fit_te)
+#' fit_te2
 #' }
 #'
 #' # Fit a Gaussian mixture distribution
@@ -36,9 +47,15 @@
 fit_log_ppmr <-
   function(ppmr_data, species,
            distribution = c("normal", "trunc_exp", "gauss_mix"),
-           min_w_pred = 0, power = 0) {
+           min_w_pred = 0, power = 0, fits = NULL) {
     distribution <- match.arg(distribution)
     ppmr_data <- validate_ppmr_data(ppmr_data)
+
+    if (!is.null(fits)) {
+      fits <- validate_fit(fits)
+      species <- fits$species
+    }
+
     missing <- setdiff(species, unique(ppmr_data$species))
     if (length(missing) > 0) {
       stop("Species not found in ppmr data: ",
@@ -55,7 +72,16 @@ fit_log_ppmr <-
       if (distribution == "normal") {
         fit <- fit_normal(value, weight)
       } else if (distribution == "trunc_exp") {
-        fit <- fit_truncated_exponential(value, weight)
+        start <- NULL
+        if (!is.null(fits) && sp %in% fits$species &&
+            fits[sp, "distribution"] == "trunc_exp") {
+          fits_row <- fits[sp, ]
+          start <- lapply(
+            as.list(fits_row[c("alpha", "ll", "ul", "lr", "ur")]),
+            as.numeric
+          )
+        }
+        fit <- fit_truncated_exponential(value, weight, start = start)
       } else if (distribution == "gauss_mix") {
         fit <- fit_gaussian_mixture(value, weight)
       }
@@ -98,6 +124,9 @@ weighted.sd <- function(x, w) {
 #'
 #' @param value A numeric vector of observed values
 #' @param weight A numeric vector of weights
+#' @param start An optional named list of starting values for `mle2()` with
+#'   elements `alpha`, `ll`, `ul`, `lr`, `ur`. If `NULL`, defaults are derived
+#'   from the data.
 #' @return A list with the fitted parameters `alpha`, `ll`, `ul`, `lr`, `ur`
 #' @examples
 #' \donttest{
@@ -106,7 +135,7 @@ weighted.sd <- function(x, w) {
 #' }
 #' @export
 #' @keywords internal
-fit_truncated_exponential <- function(value, weight) {
+fit_truncated_exponential <- function(value, weight, start = NULL) {
   validate_weighted_observations(value, weight)
 
   loglik <- function(alpha, ll, ul, lr, ur) {
@@ -119,12 +148,16 @@ fit_truncated_exponential <- function(value, weight) {
     if (is.null(L) || anyNA(L)) return(1e15)
     return(-sum(log(L) * weight))
   }
-  fit <- mle2(loglik, start = list(
-    alpha = 0.5,
-    ll = max(0.1, min(value)),
-    lr = max(value),
-    ul = 20,
-    ur = 20),
+  if (is.null(start)) {
+    start <- list(
+      alpha = 0.5,
+      ll = max(0.1, min(value)),
+      lr = max(value),
+      ul = 20,
+      ur = 20
+    )
+  }
+  fit <- mle2(loglik, start = start,
     control = list(maxit = 10000))
   return(as.list(fit@coef))
 }

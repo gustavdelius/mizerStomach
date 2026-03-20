@@ -17,7 +17,8 @@ Imports:
     ggplot2,
     Hmisc,
     mizer,
-    mizerExperimental
+    mizerExperimental,
+    shiny
 Remotes:
     sizespectrum/mizerExperimental
 Suggests: 
@@ -30,6 +31,7 @@ Collate:
     'densities.R'
     'fit.R'
     'plot.R'
+    'shiny.R'
     'transform.R'
     'validate.R'
 VignetteBuilder: knitr

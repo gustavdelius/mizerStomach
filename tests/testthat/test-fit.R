@@ -92,3 +92,46 @@ test_that("fit_log_ppmr respects power argument", {
     # They may be close but should generally not be identical
     expect_true(is.numeric(result$mean))
 })
+
+test_that("fit_log_ppmr uses species from fits argument", {
+    species_vec <- unique(barnes_data$species)[1:2]
+    prior_fit <- fit_log_ppmr(barnes_data, species_vec, distribution = "normal")
+    result <- fit_log_ppmr(barnes_data, distribution = "normal", fits = prior_fit)
+    expect_equal(nrow(result), 2)
+    expect_equal(result$species, species_vec)
+})
+
+test_that("fit_log_ppmr with fits ignores species argument", {
+    sp1 <- unique(barnes_data$species)[1]
+    sp2 <- unique(barnes_data$species)[2]
+    prior_fit <- fit_log_ppmr(barnes_data, sp1, distribution = "normal")
+    # Even if species = sp2 is passed, the result should use sp1 from fits
+    result <- fit_log_ppmr(barnes_data, species = sp2,
+                           distribution = "normal", fits = prior_fit)
+    expect_equal(result$species, sp1)
+})
+
+test_that("fit_truncated_exponential accepts custom start values", {
+    default_fit <- fit_truncated_exponential(sp_data$log_ppmr, sp_data$n_prey)
+    custom_start <- list(alpha = default_fit$alpha, ll = default_fit$ll,
+                         ul = default_fit$ul, lr = default_fit$lr,
+                         ur = default_fit$ur)
+    result <- fit_truncated_exponential(sp_data$log_ppmr, sp_data$n_prey,
+                                        start = custom_start)
+    expect_type(result, "list")
+    expect_true(all(c("alpha", "ll", "ul", "lr", "ur") %in% names(result)))
+    # Fitting from a good starting point should converge to the same solution
+    expect_equal(result$alpha, default_fit$alpha, tolerance = 1e-4)
+})
+
+test_that("fit_log_ppmr uses fits as start for trunc_exp", {
+    prior_fit <- fit_log_ppmr(barnes_data, test_species,
+                              distribution = "trunc_exp")
+    result <- fit_log_ppmr(barnes_data, distribution = "trunc_exp",
+                           fits = prior_fit)
+    expect_s3_class(result, "data.frame")
+    expect_equal(result$species, test_species)
+    expect_equal(result$distribution, "trunc_exp")
+    # Should converge to essentially the same parameters
+    expect_equal(result$alpha, prior_fit$alpha, tolerance = 1e-4)
+})
