@@ -48,6 +48,7 @@ fit_shiny <- function(ppmr_data,
                     "done", "Return", icon = shiny::icon("check"),
                     onclick = "setTimeout(function(){window.close();},500);"
                 ),
+                shiny::actionButton("fit_btn", "Fit", icon = shiny::icon("play")),
                 shiny::uiOutput("sp_sel"),
                 shiny::uiOutput("sp_params")
             ),
@@ -63,9 +64,8 @@ fit_shiny <- function(ppmr_data,
         fits_rv <- shiny::reactiveVal(fits)
 
         output$sp_sel <- shiny::renderUI({
-            species <- as.character(fits_rv()$species)
             shiny::tagList(
-                shiny::selectInput("sp", "Species to tune:", species)
+                shiny::selectInput("sp", "Species to tune:", as.character(fits$species))
             )
         })
 
@@ -118,7 +118,22 @@ fit_shiny <- function(ppmr_data,
             f[sp, "ur"]    <- input$ur
             fits_rv(f)
         })
+
+        shiny::observeEvent(input$fit_btn, {
+            shiny::req(input$sp)
+            sp <- input$sp
+            f  <- fits_rv()
+            new_fit <- fit_log_ppmr(ppmr_data, distribution = "trunc_exp",
+                                    fits = f[sp, , drop = FALSE])
+            f[sp, colnames(new_fit)] <- new_fit
+            fits_rv(f)
+            shiny::updateSliderInput(session, "alpha", value = new_fit$alpha)
+            shiny::updateSliderInput(session, "ll",    value = new_fit$ll)
+            shiny::updateSliderInput(session, "ul",    value = new_fit$ul)
+            shiny::updateSliderInput(session, "lr",    value = new_fit$lr)
+            shiny::updateSliderInput(session, "ur",    value = new_fit$ur)
+        })
     }
 
-    shiny::runGadget(ui, server, viewer = browserViewer("Fit PPMR distributions"))
+    shiny::runGadget(ui, server, viewer = browserViewer())
 }
