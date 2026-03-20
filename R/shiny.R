@@ -62,12 +62,19 @@ fit_shiny <- function(ppmr_data,
         base
     }
 
-    # Store fits as a named list of single-row data frames, one per species.
-    # This avoids column-mismatch issues when species use different distributions.
-    fits_list <- setNames(
-        lapply(seq_len(nrow(fits)), function(i) fits[i, , drop = FALSE]),
-        fits$species
-    )
+    # Nested cache: cache[[sp]][[dist]] = single-row fit data frame.
+    # Initialised from the input fits; other distributions start empty (NULL)
+    # and are created on first visit (defaults) or after fitting.
+    fits_cache <- list()
+    for (i in seq_len(nrow(fits))) {
+        sp   <- fits$species[i]
+        dist <- fits$distribution[i]
+        if (is.null(fits_cache[[sp]])) fits_cache[[sp]] <- list()
+        fits_cache[[sp]][[dist]] <- fits[i, , drop = FALSE]
+    }
+
+    # Selected distribution per species (initialised from input fits)
+    sel_dist_init <- setNames(fits$distribution, fits$species)
 
     ui <- shiny::fluidPage(
         shiny::sidebarLayout(
@@ -106,7 +113,22 @@ fit_shiny <- function(ppmr_data,
         flags <- new.env()
         flags$key_old <- NULL
 
-        fits_rv <- shiny::reactiveVal(fits_list)
+        cache_rv    <- shiny::reactiveVal(fits_cache)
+        sel_dist_rv <- shiny::reactiveVal(sel_dist_init)
+
+        # Helper: return the current single-row fit (isolating reactive reads)
+        current_fit_isolated <- function() {
+            sp   <- shiny::isolate(input$sp)
+            dist <- shiny::isolate(input$dist)
+            cache_rv()[[sp]][[dist]]
+        }
+
+        # Helper: build the final result data frame (current dist per species)
+        build_result <- function() {
+            cache <- cache_rv()
+            sd    <- sel_dist_rv()
+            dplyr::bind_rows(lapply(names(sd), function(sp) cache[[sp]][[sd[[sp]]]]))
+        }
 
         output$sp_sel <- shiny::renderUI({
             shiny::tagList(
@@ -116,32 +138,45 @@ fit_shiny <- function(ppmr_data,
 
         # When species changes, sync the distribution radio to that species' dist
         shiny::observeEvent(input$sp, {
-            f <- fits_rv()[[input$sp]]
-            shiny::updateRadioButtons(session, "dist", selected = f$distribution)
+            dist <- sel_dist_rv()[[input$sp]]
+            shiny::updateRadioButtons(session, "dist", selected = dist)
         }, ignoreInit = TRUE)
 
-        # When distribution changes, update fits_rv with defaults for the new
-        # distribution. The fl[[sp]]$distribution != dist guard makes this a
-        # no-op for programmatic radio updates (species switch) because in that
-        # case the species' stored distribution already matches the new value.
+        # When distribution changes:
+        #   - guard against programmatic radio updates (no-op when already matches)
+        #   - look up or create a cached fit for the new distribution
+        #   - update sel_dist_rv for this species
         shiny::observeEvent(input$dist, {
             shiny::req(input$sp)
-            sp   <- input$sp
-            dist <- input$dist
-            fl   <- fits_rv()
-            if (fl[[sp]]$distribution != dist) {
-                old      <- fl[[sp]]
-                fl[[sp]] <- make_default_fit(sp, dist,
-                                             power      = old$power,
-                                             min_w_pred = old$min_w_pred)
-                fits_rv(fl)
+            sp       <- input$sp
+            new_dist <- input$dist
+            old_dist <- sel_dist_rv()[[sp]]
+
+            if (old_dist == new_dist) return()
+
+            # Update selected distribution for this species
+            sd       <- sel_dist_rv()
+            sd[[sp]] <- new_dist
+            sel_dist_rv(sd)
+
+            # Populate cache for new_dist if not yet visited
+            cache <- cache_rv()
+            if (is.null(cache[[sp]][[new_dist]])) {
+                old_fit <- cache[[sp]][[old_dist]]
+                cache[[sp]][[new_dist]] <- make_default_fit(
+                    sp, new_dist,
+                    power      = old_fit$power,
+                    min_w_pred = old_fit$min_w_pred
+                )
+                cache_rv(cache)
             }
         })
 
         output$sp_params <- shiny::renderUI({
             shiny::req(input$sp, input$dist)
-            f    <- shiny::isolate(fits_rv())[[input$sp]]
+            f    <- shiny::isolate(cache_rv())[[input$sp]][[input$dist]]
             dist <- input$dist
+            if (is.null(f)) f <- make_default_fit(input$sp, dist)
             if (dist == "trunc_exp") {
                 shiny::tagList(
                     shiny::sliderInput("alpha", "power-law exponent", min = -2,
@@ -174,11 +209,11 @@ fit_shiny <- function(ppmr_data,
 
         output$download_params <- shiny::downloadHandler(
             filename = "fits.rds",
-            content  = function(file) saveRDS(dplyr::bind_rows(fits_rv()), file = file)
+            content  = function(file) saveRDS(build_result(), file = file)
         )
 
         shiny::observeEvent(input$done, {
-            shiny::stopApp(dplyr::bind_rows(fits_rv()))
+            shiny::stopApp(build_result())
         })
 
         output$distPlot <- shiny::renderPlot({
@@ -190,11 +225,12 @@ fit_shiny <- function(ppmr_data,
                      cex = 1.4, col = "grey40")
                 return()
             }
-            fit <- fits_rv()[[sp]]
+            dist <- sel_dist_rv()[[sp]]
+            fit  <- cache_rv()[[sp]][[dist]]
             plot_log_ppmr_fit(ppmr_data, fit, type = input$plot_type)
         })
 
-        # Observe slider changes and write back to fits_rv.
+        # Observe slider changes and write back to cache_rv[[sp]][[dist]].
         # All slider inputs are read unconditionally at the top so that Shiny
         # registers reactive dependencies on them even when we return early.
         # sp/dist are isolated so only slider changes (not species/dist switches)
@@ -216,25 +252,25 @@ fit_shiny <- function(ppmr_data,
                 flags$key_old <- key
                 return()
             }
-            fl <- shiny::isolate(fits_rv())
+            cache <- shiny::isolate(cache_rv())
             if (dist == "trunc_exp") {
                 shiny::req(alpha, ll, ul, lr, ur)
-                fl[[sp]]$alpha <- alpha
-                fl[[sp]]$ll    <- ll
-                fl[[sp]]$ul    <- ul
-                fl[[sp]]$lr    <- lr
-                fl[[sp]]$ur    <- ur
+                cache[[sp]][[dist]]$alpha <- alpha
+                cache[[sp]][[dist]]$ll    <- ll
+                cache[[sp]][[dist]]$ul    <- ul
+                cache[[sp]][[dist]]$lr    <- lr
+                cache[[sp]][[dist]]$ur    <- ur
             } else if (dist == "normal") {
                 shiny::req(mean_v, sd_v)
-                fl[[sp]]$mean <- mean_v
-                fl[[sp]]$sd   <- sd_v
+                cache[[sp]][[dist]]$mean <- mean_v
+                cache[[sp]][[dist]]$sd   <- sd_v
             } else {  # gauss_mix
                 shiny::req(p1, mean1, mean2, sd1, sd2)
-                fl[[sp]]$p    <- list(c(p1, 1 - p1))
-                fl[[sp]]$mean <- list(c(mean1, mean2))
-                fl[[sp]]$sd   <- list(c(sd1, sd2))
+                cache[[sp]][[dist]]$p    <- list(c(p1, 1 - p1))
+                cache[[sp]][[dist]]$mean <- list(c(mean1, mean2))
+                cache[[sp]][[dist]]$sd   <- list(c(sd1, sd2))
             }
-            fits_rv(fl)
+            cache_rv(cache)
         })
 
         shiny::observeEvent(input$fit_btn, {
@@ -242,16 +278,16 @@ fit_shiny <- function(ppmr_data,
             sp   <- input$sp
             dist <- input$dist
             if (!sp %in% ppmr_data$species) return()
-            fl <- fits_rv()
+            cache <- cache_rv()
             tryCatch({
                 new_fit <- if (dist == "trunc_exp") {
                     fit_log_ppmr(ppmr_data, distribution = "trunc_exp",
-                                 fits = fl[[sp]])
+                                 fits = cache[[sp]][[dist]])
                 } else {
                     fit_log_ppmr(ppmr_data, species = sp, distribution = dist)
                 }
-                fl[[sp]] <- new_fit
-                fits_rv(fl)
+                cache[[sp]][[dist]] <- new_fit
+                cache_rv(cache)
                 if (dist == "trunc_exp") {
                     shiny::updateSliderInput(session, "alpha", value = new_fit$alpha)
                     shiny::updateSliderInput(session, "ll",    value = new_fit$ll)
