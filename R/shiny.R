@@ -278,14 +278,14 @@ fit_shiny <- function(ppmr_data,
                                        value = min(max(f$ll, data_min), data_max),
                                        step = 0.1),
                     shiny::sliderInput("ul", "shape of left sigmoid",
-                                       min = 0.1, max = 10, value = f$ul,
+                                       min = 0.1, max = 20, value = f$ul,
                                        step = 0.1),
                     shiny::sliderInput("lr", "location of right sigmoid",
                                        min = data_min, max = data_max,
                                        value = min(max(f$lr, data_min), data_max),
                                        step = 0.1),
                     shiny::sliderInput("ur", "shape of right sigmoid",
-                                       min = 0.1, max = 10, value = f$ur, step = 0.1)
+                                       min = 0.1, max = 20, value = f$ur, step = 0.1)
                 )
             } else if (dist == "normal") {
                 shiny::tagList(
