@@ -49,19 +49,20 @@ dtexp <- function(x, alpha, ll, ul, lr, ur) {
 
     d <- d / integral_result$value
 
-    if (any(d <= 0)) {
-        stop("The density contains non-positive values when",
-             " alpha = ", alpha, " ll = ", ll, " ul = ", ul,
-             " lr = ", lr, " ur = ", ur)
+    if (any(!is.finite(d) | d <= 0)) {
+        return(rep(NA, length(x)))
     }
     return(d)
 }
 
 fl <- function(x, alpha, ll, ul, lr, ur) {
-    dl <- ll - x
-    dr <- x - lr
-    fl <- exp(alpha * x) /
-        (1 + exp(ul * dl)) /
-        (1 + exp(ur * dr))
-    # fl[fl <= 0] <- 0
+    # Computed in log-space, normalised by midpoint to keep values O(1).
+    # The normalisation constant cancels in dtexp (numerator / integral),
+    # so this is numerically equivalent but avoids exp() overflow when the
+    # optimizer explores large alpha or ul/ur values.
+    mid <- (ll + lr) / 2
+    log_fl <- alpha * (x - mid) -
+        log1p(exp(pmin(ul * (ll - x), 500))) -
+        log1p(exp(pmin(ur * (x - lr), 500)))
+    exp(log_fl)
 }

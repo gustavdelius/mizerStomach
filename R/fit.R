@@ -70,16 +70,21 @@ fit_truncated_exponential <- function(value, weight) {
   validate_weighted_observations(value, weight)
 
   loglik <- function(alpha, ll, ul, lr, ur) {
-    L <- dtexp(value, alpha, ll, ul, lr, ur)
+    if (ll < 0.9 * min(value) || lr < ll ||
+        (alpha + ul) < 1.01 || (ur - alpha) < 0.01) return(1e15)
+    L <- tryCatch(
+      dtexp(value, alpha, ll, ul, lr, ur),
+      error = function(e) NULL
+    )
+    if (is.null(L) || anyNA(L)) return(1e15)
     return(-sum(log(L) * weight))
   }
   fit <- mle2(loglik, start = list(
     alpha = 0.5,
-    ll = Hmisc::wtd.quantile(value, weight, 0.05),
-    lr = Hmisc::wtd.quantile(value, weight, 0.95),
-    ul = 5,
-    ur = 5),
-    method = "L-BFGS-B",
+    ll = max(0.1, min(value)),
+    lr = max(value),
+    ul = 20,
+    ur = 20),
     control = list(maxit = 10000))
   return(as.list(fit@coef))
 }
