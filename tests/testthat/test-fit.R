@@ -135,3 +135,38 @@ test_that("fit_log_ppmr uses fits as start for trunc_exp", {
     # Should converge to essentially the same parameters
     expect_equal(result$alpha, prior_fit$alpha, tolerance = 1e-4)
 })
+
+# Tests for extract_fit species_dict argument
+test_that("extract_fit species_dict renames species in output", {
+    params <- mizer::NS_params
+    sp_name <- params@species_params$species[[1]]
+    dict <- setNames(list("renamed_species"), sp_name)
+    result <- extract_fit(params, species_dict = dict)
+    expect_equal(result$species[[1]], "renamed_species")
+    expect_equal(rownames(result)[[1]], "renamed_species")
+})
+
+test_that("extract_fit species_dict leaves unmentioned species unchanged", {
+    params <- mizer::NS_params
+    sp1 <- params@species_params$species[[1]]
+    sp2 <- params@species_params$species[[2]]
+    dict <- setNames(list("renamed_species"), sp1)
+    result <- extract_fit(params, species_dict = dict)
+    expect_equal(result$species[[2]], sp2)
+    expect_equal(rownames(result)[[2]], sp2)
+})
+
+test_that("extract_fit with NULL species_dict keeps original names", {
+    params <- mizer::NS_params
+    result_no_dict <- extract_fit(params)
+    result_null    <- extract_fit(params, species_dict = NULL)
+    expect_equal(result_no_dict$species, result_null$species)
+})
+
+test_that("extract_fit species_dict works with named character vector", {
+    params <- mizer::NS_params
+    sp_name <- params@species_params$species[[1]]
+    dict <- setNames(c("vec_renamed"), sp_name)
+    result <- extract_fit(params, species_dict = dict)
+    expect_equal(result$species[[1]], "vec_renamed")
+})

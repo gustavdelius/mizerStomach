@@ -109,11 +109,15 @@ fit_log_ppmr <-
 #' supported
 #'
 #' @param params A MizerParams object
+#' @param species_dict A named list (or named character vector) mapping species
+#'   names in `params@species_params$species` to the names they should have in
+#'   the returned fit data frame. Only species listed as names in
+#'   `species_dict` are renamed; others keep their original names.
 #' @return A fit data frame with `power = 2/3` and distribution parameters
 #'   populated from `species_params`. Only the parameters relevant to each
 #'   species' distribution are filled; others are `NA`.
 #' @export
-extract_fit <- function(params) {
+extract_fit <- function(params, species_dict = NULL) {
   species_params <- params@species_params
   dist_map <- c(lognormal = "normal", power_law = "trunc_exp")
   distribution <- unname(dist_map[species_params$pred_kernel_type])
@@ -125,8 +129,14 @@ extract_fit <- function(params) {
   is_normal   <- distribution == "normal"
   is_trunc    <- distribution == "trunc_exp"
 
+  species_names <- species_params$species
+  if (!is.null(species_dict)) {
+    idx <- match(species_names, names(species_dict))
+    species_names <- ifelse(is.na(idx), species_names, unlist(species_dict)[idx])
+  }
+
   fit <- data.frame(
-    species      = species_params$species,
+    species      = species_names,
     distribution = distribution,
     power        = params@resource_params$lambda - 4/3,
     min_w_pred   = 0,
