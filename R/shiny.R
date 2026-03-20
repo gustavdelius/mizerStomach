@@ -77,6 +77,20 @@ fit_shiny <- function(ppmr_data,
     sel_dist_init <- setNames(fits$distribution, fits$species)
 
     ui <- shiny::fluidPage(
+        shiny::tags$head(shiny::tags$style(shiny::HTML("
+            .fit-spinner {
+                display: inline-block;
+                width: 24px;
+                height: 24px;
+                border: 3px solid #ddd;
+                border-top-color: #555;
+                border-radius: 50%;
+                animation: fit-spin 0.8s linear infinite;
+            }
+            @keyframes fit-spin {
+                to { transform: rotate(360deg); }
+            }
+        "))),
         shiny::sidebarLayout(
             shiny::sidebarPanel(
                 shiny::actionButton("reset_btn", "Reset", icon = shiny::icon("fast-backward")),
@@ -106,7 +120,8 @@ fit_shiny <- function(ppmr_data,
                     selected = "kernel",
                     inline   = TRUE
                 ),
-                shiny::plotOutput("distPlot")
+                shiny::plotOutput("distPlot"),
+                shiny::uiOutput("fitting_indicator")
             )
         )
     )
@@ -118,6 +133,7 @@ fit_shiny <- function(ppmr_data,
         cache_rv      <- shiny::reactiveVal(fits_cache)
         sel_dist_rv   <- shiny::reactiveVal(sel_dist_init)
         undo_stack_rv <- shiny::reactiveVal(list())
+        fitting_rv    <- shiny::reactiveVal(FALSE)
 
         push_undo <- function() {
             stack <- shiny::isolate(undo_stack_rv())
@@ -158,6 +174,15 @@ fit_shiny <- function(ppmr_data,
             dplyr::bind_rows(lapply(names(sd), function(sp) cache[[sp]][[sd[[sp]]]]))
         }
 
+        output$fitting_indicator <- shiny::renderUI({
+            if (fitting_rv()) {
+                shiny::tags$div(
+                    style = "text-align: center; padding: 8px 0;",
+                    shiny::tags$div(class = "fit-spinner")
+                )
+            }
+        })
+
         output$sp_sel <- shiny::renderUI({
             shiny::tagList(
                 shiny::selectInput("sp", "Species to tune:", as.character(fits$species))
@@ -192,24 +217,34 @@ fit_shiny <- function(ppmr_data,
             if (is.null(cache[[sp]][[new_dist]])) {
                 old_fit <- cache[[sp]][[old_dist]]
                 if (sp %in% ppmr_data$species) {
-                    tryCatch({
-                        new_fit <- fit_log_ppmr(ppmr_data, species = sp,
-                                                distribution = new_dist)
-                        cache[[sp]][[new_dist]] <- new_fit
-                        cache_rv(cache)
-                        update_sliders_from_fit(new_fit, new_dist)
-                    }, error = function(e) {
-                        shiny::showNotification(
-                            paste("Auto-fit failed, using defaults:", conditionMessage(e)),
-                            type = "warning"
-                        )
-                        cache[[sp]][[new_dist]] <- make_default_fit(
-                            sp, new_dist,
-                            power      = old_fit$power,
-                            min_w_pred = old_fit$min_w_pred
-                        )
-                        cache_rv(cache)
-                    })
+                    run_fit <- function() {
+                        tryCatch({
+                            new_fit <- fit_log_ppmr(ppmr_data, species = sp,
+                                                    distribution = new_dist)
+                            upd <- shiny::isolate(cache_rv())
+                            upd[[sp]][[new_dist]] <- new_fit
+                            cache_rv(upd)
+                            update_sliders_from_fit(new_fit, new_dist)
+                        }, error = function(e) {
+                            shiny::showNotification(
+                                paste("Auto-fit failed, using defaults:", conditionMessage(e)),
+                                type = "warning"
+                            )
+                            upd <- shiny::isolate(cache_rv())
+                            upd[[sp]][[new_dist]] <- make_default_fit(
+                                sp, new_dist,
+                                power      = old_fit$power,
+                                min_w_pred = old_fit$min_w_pred
+                            )
+                            cache_rv(upd)
+                        })
+                    }
+                    if (new_dist == "trunc_exp") {
+                        fitting_rv(TRUE)
+                        later::later(function() { run_fit(); fitting_rv(FALSE) }, delay = 0)
+                    } else {
+                        run_fit()
+                    }
                 } else {
                     cache[[sp]][[new_dist]] <- make_default_fit(
                         sp, new_dist,
@@ -357,21 +392,38 @@ fit_shiny <- function(ppmr_data,
             dist <- input$dist
             if (!sp %in% ppmr_data$species) return()
             push_undo()
-            cache <- cache_rv()
-            tryCatch({
-                new_fit <- if (dist == "trunc_exp") {
-                    fit_log_ppmr(ppmr_data, distribution = "trunc_exp",
-                                 fits = cache[[sp]][[dist]])
-                } else {
-                    fit_log_ppmr(ppmr_data, species = sp, distribution = dist)
-                }
-                cache[[sp]][[dist]] <- new_fit
-                cache_rv(cache)
-                update_sliders_from_fit(new_fit, dist)
-            }, error = function(e) {
-                shiny::showNotification(paste("Fit failed:", conditionMessage(e)),
-                                        type = "error")
-            })
+            if (dist == "trunc_exp") {
+                init_fit <- shiny::isolate(cache_rv())[[sp]][["trunc_exp"]]
+                fitting_rv(TRUE)
+                later::later(function() {
+                    tryCatch({
+                        new_fit <- fit_log_ppmr(ppmr_data,
+                                                distribution = "trunc_exp",
+                                                fits = init_fit)
+                        upd <- shiny::isolate(cache_rv())
+                        upd[[sp]][["trunc_exp"]] <- new_fit
+                        cache_rv(upd)
+                        update_sliders_from_fit(new_fit, "trunc_exp")
+                    }, error = function(e) {
+                        shiny::showNotification(
+                            paste("Fit failed:", conditionMessage(e)),
+                            type = "error")
+                    })
+                    fitting_rv(FALSE)
+                }, delay = 0)
+            } else {
+                cache <- cache_rv()
+                tryCatch({
+                    new_fit <- fit_log_ppmr(ppmr_data, species = sp,
+                                            distribution = dist)
+                    cache[[sp]][[dist]] <- new_fit
+                    cache_rv(cache)
+                    update_sliders_from_fit(new_fit, dist)
+                }, error = function(e) {
+                    shiny::showNotification(paste("Fit failed:", conditionMessage(e)),
+                                            type = "error")
+                })
+            }
         })
 
         shiny::observeEvent(input$reset_btn, {
