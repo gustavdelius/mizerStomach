@@ -25,6 +25,7 @@ Suggests:
     rmarkdown
 Collate:
     'mizerStomach-package.R'
+    'data.R'
     'densities.R'
     'fit.R'
     'plot.R'
