@@ -144,6 +144,71 @@ extract_fit <- function(params) {
   return(fit)
 }
 
+#' Set kernel parameters in a mizer model from a fit data frame
+#'
+#' Sets the predation kernel parameters in a MizerParams object from a `fits`
+#' data frame as returned by [fit_log_ppmr()]. This is the inverse of
+#' [extract_fit()].
+#'
+#' The `distribution` column is mapped as: `"normal"` → `pred_kernel_type =
+#' "lognormal"` (sets `beta = exp(mean)`, `sigma = sd`), `"trunc_exp"` →
+#' `pred_kernel_type = "power_law"` (sets `kernel_exp`, `kernel_l_l`,
+#' `kernel_u_l`, `kernel_l_r`, `kernel_u_r`). Gaussian mixture distribution is
+#' not supported.
+#'
+#' @param params A MizerParams object
+#' @param fit A fit data frame (as returned by [fit_log_ppmr()] or
+#'   [extract_fit()]). May contain one or more species. All species in `fit`
+#'   must be present in `params`.
+#' @return The updated MizerParams object.
+#' @export
+set_kernel_params <- function(params, fit) {
+  fit <- validate_fit(fit)
+  sp <- params@species_params
+
+  unknown <- setdiff(fit$species, sp$species)
+  if (length(unknown) > 0) {
+    stop("Species not found in params: ", paste(unknown, collapse = ", "))
+  }
+
+  # Transform fit to the power used internally by mizer
+  mizer_power <- params@resource_params$lambda - 4/3
+  fit <- transform_fit(fit, power = mizer_power)
+
+  dist_map <- c(normal = "lognormal", trunc_exp = "power_law")
+
+  for (i in seq_len(nrow(fit))) {
+    row <- fit[i, ]
+    s <- row$species
+    dist <- row$distribution
+
+    if (dist == "gauss_mix") {
+      stop("gauss_mix distribution is not supported by mizer kernel parameters")
+    }
+
+    sp[sp$species == s, "pred_kernel_type"] <- dist_map[[dist]]
+
+    if (dist == "normal") {
+      sp[sp$species == s, "beta"]  <- exp(row$mean)
+      sp[sp$species == s, "sigma"] <- row$sd
+    } else if (dist == "trunc_exp") {
+      if (!hasName(sp, "kernel_exp")) sp$kernel_exp <- NA_real_
+      if (!hasName(sp, "kernel_l_l")) sp$kernel_l_l <- NA_real_
+      if (!hasName(sp, "kernel_u_l")) sp$kernel_u_l <- NA_real_
+      if (!hasName(sp, "kernel_l_r")) sp$kernel_l_r <- NA_real_
+      if (!hasName(sp, "kernel_u_r")) sp$kernel_u_r <- NA_real_
+      sp[sp$species == s, "kernel_exp"] <- row$alpha
+      sp[sp$species == s, "kernel_l_l"] <- row$ll
+      sp[sp$species == s, "kernel_u_l"] <- row$ul
+      sp[sp$species == s, "kernel_l_r"] <- row$lr
+      sp[sp$species == s, "kernel_u_r"] <- row$ur
+    }
+  }
+
+  mizer::species_params(params) <- sp
+  return(params)
+}
+
 #' Fit a normal distribution to weighted observations
 #'
 #' @param value A numeric vector of observed values
