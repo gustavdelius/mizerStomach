@@ -4,6 +4,17 @@
 #' @param fit A fit data frame (one or more rows)
 #' @param power The power to raise the weights to
 #' @return An updated fit data frame
+#' @examples
+#' # Fit a normal distribution and transform to biomass weighting
+#' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
+#' fit_biomass <- transform_fit(fit, power = 1)
+#' fit_biomass
+#'
+#' # Transform multiple species at once
+#' fit2 <- fit_log_ppmr(barnes_data,
+#'                      c("Albacore", "Atlantic cod"),
+#'                      distribution = "normal")
+#' transform_fit(fit2, power = 1)
 #' @export
 transform_fit <- function(fit, power) {
     fit <- validate_fit(fit)
@@ -40,6 +51,9 @@ transform_fit <- function(fit, power) {
 #' @param fit A list with the parameters `mean` and `sd`
 #' @param power The power to raise the weights to
 #' @return A list with the updated parameters
+#' @examples
+#' fit <- list(mean = 5.0, sd = 2.0)
+#' transform_normal(fit, power = 1)
 #' @export
 #' @keywords internal
 transform_normal <- function(fit, power = 1) {
@@ -52,6 +66,9 @@ transform_normal <- function(fit, power = 1) {
 #' @param fit A list with the parameters `exp`, `ll`, `ul`, `lr`, `ur`
 #' @param power The power to raise the weights to
 #' @return A list with the updated parameters
+#' @examples
+#' fit <- list(alpha = 0.5, ll = 2, ul = 20, lr = 12, ur = 20)
+#' transform_truncated_exp(fit, power = 1)
 #' @export
 #' @keywords internal
 transform_truncated_exp <- function(fit, power = 1) {
@@ -65,6 +82,9 @@ transform_truncated_exp <- function(fit, power = 1) {
 #'   vector with one entry for each component of the mixture
 #' @param power The power to raise the weights to
 #' @return A list with the updated parameters
+#' @examples
+#' fit <- list(p = c(0.3, 0.7), mean = c(3, 7), sd = c(1, 2))
+#' transform_gaussian_mixture(fit, power = 1)
 #' @export
 #' @keywords internal
 transform_gaussian_mixture <- function(fit, power = 1) {

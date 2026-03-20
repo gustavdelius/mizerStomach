@@ -4,6 +4,19 @@
 #' @param fit A fit data frame (one or more rows)
 #' @return If `fit` has a single row, a numeric vector of densities. If `fit`
 #'   has multiple rows, a matrix with one column per species.
+#' @examples
+#' # Fit a normal distribution and evaluate its density
+#' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
+#' x <- seq(0, 15, length.out = 100)
+#' density <- get_density(x, fit)
+#' plot(x, density, type = "l", main = "Albacore normal fit")
+#'
+#' # Density for multiple species returns a matrix
+#' fit2 <- fit_log_ppmr(barnes_data,
+#'                      c("Albacore", "Atlantic cod"),
+#'                      distribution = "normal")
+#' densities <- get_density(x, fit2)
+#' head(densities)
 #' @export
 get_density <- function(x, fit) {
     fit <- validate_fit(fit)
@@ -49,6 +62,11 @@ get_density_single <- function(x, fit) {
 #' @param lr location of upper sigmoid
 #' @param ur steepness of upper sigmoid
 #' @return A numeric vector of densities
+#' @examples
+#' # Evaluate the truncated exponential density
+#' x <- seq(0, 15, length.out = 100)
+#' d <- dtexp(x, alpha = 0.5, ll = 2, ul = 20, lr = 12, ur = 20)
+#' plot(x, d, type = "l", main = "Truncated exponential density")
 #' @keywords internal
 #' @export
 dtexp <- function(x, alpha, ll, ul, lr, ur) {

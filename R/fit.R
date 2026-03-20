@@ -12,6 +12,26 @@
 #'   biomass.
 #' @return A fit data frame with one row per species.
 #'   See [validate_fit()] for details.
+#' @examples
+#' # Fit a normal distribution to one species
+#' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
+#' fit
+#'
+#' # Fit multiple species at once
+#' fit <- fit_log_ppmr(barnes_data,
+#'                     c("Albacore", "Atlantic cod"),
+#'                     distribution = "normal")
+#' fit
+#'
+#' \donttest{
+#' # Fit a truncated exponential distribution
+#' fit_te <- fit_log_ppmr(barnes_data, "Albacore", distribution = "trunc_exp")
+#' fit_te
+#' }
+#'
+#' # Fit a Gaussian mixture distribution
+#' fit_gm <- fit_log_ppmr(barnes_data, "Albacore", distribution = "gauss_mix")
+#' fit_gm
 #' @export
 fit_log_ppmr <-
   function(ppmr_data, species,
@@ -58,6 +78,9 @@ fit_log_ppmr <-
 #' @param value A numeric vector of observed values
 #' @param weight A numeric vector of weights
 #' @return A list with the fitted parameters `mean` and `sd`
+#' @examples
+#' cod_data <- validate_ppmr_data(barnes_data, species = "Atlantic cod")
+#' fit_normal(cod_data$log_ppmr, cod_data$n_prey)
 #' @export
 #' @keywords internal
 fit_normal <- function(value, weight) {
@@ -76,6 +99,11 @@ weighted.sd <- function(x, w) {
 #' @param value A numeric vector of observed values
 #' @param weight A numeric vector of weights
 #' @return A list with the fitted parameters `alpha`, `ll`, `ul`, `lr`, `ur`
+#' @examples
+#' \donttest{
+#' cod_data <- validate_ppmr_data(barnes_data, species = "Atlantic cod")
+#' fit_truncated_exponential(cod_data$log_ppmr, cod_data$n_prey)
+#' }
 #' @export
 #' @keywords internal
 fit_truncated_exponential <- function(value, weight) {
@@ -107,6 +135,9 @@ fit_truncated_exponential <- function(value, weight) {
 #' @param weight A numeric vector of weights
 #' @return A list with the fitted parameters `mean`, `sd` and `p`, each of which
 #'   is a vector with one entry for each component of the mixture
+#' @examples
+#' cod_data <- validate_ppmr_data(barnes_data, species = "Atlantic cod")
+#' fit_gaussian_mixture(cod_data$log_ppmr, cod_data$n_prey)
 #' @export
 #' @keywords internal
 fit_gaussian_mixture <- function(value, weight,

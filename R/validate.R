@@ -42,6 +42,15 @@ validate_weighted_observations <- function(value, weight) {
 #' @param fit A data frame or list with the fitted distribution parameters
 #' @return The valid fit data frame with species as rownames
 #' @family validation functions
+#' @examples
+#' # Validate a fit data frame produced by fit_log_ppmr()
+#' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
+#' validate_fit(fit)
+#'
+#' # A named list is also accepted (backwards compatibility)
+#' fit_list <- list(species = "test", distribution = "normal",
+#'                  mean = 5, sd = 2)
+#' validate_fit(fit_list)
 #' @export
 validate_fit <- function(fit) {
     # Backwards compatibility: accept a named list and convert to data frame
@@ -120,6 +129,14 @@ validate_fit <- function(fit) {
 #' @return Valid ppmr data frame with columns "species", "w_pred", "w_prey",
 #'  "n_prey" and "log_ppmr" and rows for the specified species.
 #' @family validation functions
+#' @examples
+#' # Validate the barnes_data dataset
+#' valid_data <- validate_ppmr_data(barnes_data)
+#' head(valid_data)
+#'
+#' # Validate and filter to a single species
+#' cod_data <- validate_ppmr_data(barnes_data, species = "Atlantic cod")
+#' nrow(cod_data)
 #' @export
 validate_ppmr_data <- function(ppmr_data, species = NULL) {
     if (!is.data.frame(ppmr_data)) {

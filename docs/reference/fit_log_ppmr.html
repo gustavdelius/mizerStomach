@@ -90,6 +90,42 @@ biomass.</p></dd>
 See <code><a href="validate_fit.html">validate_fit()</a></code> for details.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Fit a normal distribution to one species</span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">fit_log_ppmr</span><span class="op">(</span><span class="va">barnes_data</span>, <span class="st">"Albacore"</span>, distribution <span class="op">=</span> <span class="st">"normal"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              mean       sd  species distribution power min_w_pred</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Albacore 9.546003 1.146738 Albacore       normal     0          0</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Fit multiple species at once</span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">fit_log_ppmr</span><span class="op">(</span><span class="va">barnes_data</span>,</span></span>
+<span class="r-in"><span>                    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Albacore"</span>, <span class="st">"Atlantic cod"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                    distribution <span class="op">=</span> <span class="st">"normal"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  mean       sd      species distribution power min_w_pred</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Albacore     9.546003 1.146738     Albacore       normal     0          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Atlantic cod 5.725514 2.600442 Atlantic cod       normal     0          0</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="co"># Fit a truncated exponential distribution</span></span></span>
+<span class="r-in"><span><span class="va">fit_te</span> <span class="op">&lt;-</span> <span class="fu">fit_log_ppmr</span><span class="op">(</span><span class="va">barnes_data</span>, <span class="st">"Albacore"</span>, distribution <span class="op">=</span> <span class="st">"trunc_exp"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit_te</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             alpha       ll       ul       lr       ur  species distribution</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Albacore 1.520876 3.725438 22.40173 9.694653 3.385282 Albacore    trunc_exp</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          power min_w_pred</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Albacore     0          0</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Fit a Gaussian mixture distribution</span></span></span>
+<span class="r-in"><span><span class="va">fit_gm</span> <span class="op">&lt;-</span> <span class="fu">fit_log_ppmr</span><span class="op">(</span><span class="va">barnes_data</span>, <span class="st">"Albacore"</span>, distribution <span class="op">=</span> <span class="st">"gauss_mix"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit_gm</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                     p         mean           sd  species distribution power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Albacore 0.070044.... 6.783777.... 1.554039.... Albacore    gauss_mix     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          min_w_pred</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Albacore          0</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

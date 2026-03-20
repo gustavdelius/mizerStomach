@@ -7,6 +7,19 @@
 #' @param fit A fit data frame (one or more rows)
 #' @param type Either `"kernel"` (default) for kernel density estimates or
 #'   `"histogram"` for binned histogram bars.
+#' @examples
+#' # Plot a normal fit for one species
+#' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
+#' plot_log_ppmr_fit(barnes_data, fit)
+#'
+#' # Plot with histogram style
+#' plot_log_ppmr_fit(barnes_data, fit, type = "histogram")
+#'
+#' # Plot fits for multiple species
+#' fit2 <- fit_log_ppmr(barnes_data,
+#'                      c("Albacore", "Atlantic cod"),
+#'                      distribution = "normal")
+#' plot_log_ppmr_fit(barnes_data, fit2)
 #' @export
 plot_log_ppmr_fit <- function(ppmr_data, fit, type = c("kernel", "histogram")) {
     type <- match.arg(type)
@@ -143,6 +156,15 @@ plot_log_ppmr_fit <- function(ppmr_data, fit, type = c("kernel", "histogram")) {
 #' @param ppmr_data A data frame with log ppmr observations
 #' @param species The species to select
 #' @param power The power to raise the weights to
+#' @examples
+#' # Ignore the warnings. They are due to a recent loss of functionality
+#' # in ggplot2 that is hopefully temporary.
+#'
+#' # Biomass-weighted violin plot
+#' plot_ppmr_violins(barnes_data, "Albacore")
+#'
+#' # Number-weighted violin plot
+#' plot_ppmr_violins(barnes_data, "Albacore", power = 0)
 #' @export
 plot_ppmr_violins <- function(ppmr_data, species, power = 1) {
     ppmr_data <- ppmr_data |>
