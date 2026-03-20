@@ -3,6 +3,10 @@ title: "Feeding kernels from stomach distributions"
 author: "Gustav Delius"
 date: "05/11/2021"
 output: html_document
+vignette: >
+  %\VignetteIndexEntry{Feeding kernels from stomach distributions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}

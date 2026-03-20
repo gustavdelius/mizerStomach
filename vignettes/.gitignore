@@ -2,3 +2,6 @@
 *.R
 
 /.quarto/
+
+^PPMR_distributions\.Rmd$
+^size_selectivity\.Rmd$

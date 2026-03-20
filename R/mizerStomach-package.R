@@ -5,8 +5,17 @@
 #' a mizer model.
 #'
 #' @import mizer mizerExperimental dplyr ggplot2
-#' @importFrom stats weighted.mean
+#' @importFrom stats weighted.mean dnorm integrate rnorm sd setNames
+#' @importFrom graphics text
 #' @importFrom utils hasName
 #' @importFrom bbmle mle2
+#' @importFrom shiny browserViewer
 #' @keywords internal
 "_PACKAGE"
+
+# Column names used in non-standard evaluation (dplyr/ggplot2)
+globalVariables(c(
+    "Biomass", "Density", "Number", "Type",
+    "bin", "biomass", "log_ppmr", "species",
+    "w_pred", "weight"
+))
