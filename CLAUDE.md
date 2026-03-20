@@ -45,11 +45,13 @@ There are no automated tests. Vignettes in `vignettes/` serve as executable docu
 
 ### Fit Object Convention
 
-All fitting functions return a named list with fields:
+All fitting functions return a **data frame** with one row per species and species names as rownames. Columns include:
 - `species`, `distribution`, `power`, `min_w_pred`
-- Distribution parameters (varies by type)
+- Distribution parameters (varies by type; `gauss_mix` uses list-columns for `p`, `mean`, `sd`)
 
-The `power` field is key: `power=0` weights by count, `power=1` weights by biomass. `transform_fit()` adjusts parameters when changing power.
+`fit_log_ppmr()` accepts a vector of species names and returns a multi-row data frame.
+Functions like `get_density()`, `transform_fit()`, and `plot_log_ppmr_fit()` work on single-row or multi-row fit data frames.
+`validate_fit()` also accepts old-style named lists for backwards compatibility.
 
 ### Data Flow
 

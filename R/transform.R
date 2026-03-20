@@ -1,24 +1,37 @@
 #' Transform a fitted distribution to represent data weighted by a different
 #' power of w
 #'
-#' @param fit A list with the fitted distribution parameters
+#' @param fit A fit data frame (one or more rows)
 #' @param power The power to raise the weights to
-#' @return An updated `fit` object
+#' @return An updated fit data frame
 #' @export
 transform_fit <- function(fit, power) {
     fit <- validate_fit(fit)
     if (!is.numeric(power) || length(power) != 1) {
         stop("power must be a single numeric value")
     }
-    power <- power - fit$power
-    if (fit$distribution == "normal") {
-        fit <- transform_normal(fit, power)
-    } else if (fit$distribution == "trunc_exp") {
-        fit <- transform_truncated_exp(fit, power)
-    } else if (fit$distribution == "gauss_mix") {
-        fit <- transform_gaussian_mixture(fit, power)
+    for (i in seq_len(nrow(fit))) {
+        dp <- power - fit$power[i]
+        dist <- fit$distribution[i]
+        if (dist == "normal") {
+            fit$mean[i] <- fit$mean[i] - dp * fit$sd[i]^2
+        } else if (dist == "trunc_exp") {
+            fit$alpha[i] <- fit$alpha[i] - dp
+        } else if (dist == "gauss_mix") {
+            means <- if (is.list(fit$mean)) fit$mean[[i]] else fit$mean[i]
+            sds <- if (is.list(fit$sd)) fit$sd[[i]] else fit$sd[i]
+            ps <- if (is.list(fit$p)) fit$p[[i]] else fit$p[i]
+            means <- means - dp * sds^2
+            ps <- ps * exp(-dp * means + 0.5 * dp^2 * sds^2)
+            ps <- ps / sum(ps)
+            if (is.list(fit$mean)) {
+                fit$mean[[i]] <- means
+                fit$sd[[i]] <- sds
+                fit$p[[i]] <- ps
+            }
+        }
+        fit$power[i] <- power
     }
-    fit$power <- power
     return(fit)
 }
 
@@ -60,3 +73,4 @@ transform_gaussian_mixture <- function(fit, power = 1) {
     fit$p <- p / sum(p)
     return(fit)
 }
+

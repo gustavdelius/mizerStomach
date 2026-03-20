@@ -4,95 +4,139 @@
 #' for the number distribution and the biomass distribution.
 #'
 #' @param ppmr_data A data frame with log ppmr observations
-#' @param fit A list with the fitted distribution parameters
+#' @param fit A fit data frame (one or more rows)
 #' @param type Either `"kernel"` (default) for kernel density estimates or
 #'   `"histogram"` for binned histogram bars.
 #' @export
 plot_log_ppmr_fit <- function(ppmr_data, fit, type = c("kernel", "histogram")) {
     type <- match.arg(type)
     fit <- validate_fit(fit)
-    ppmr_data <- validate_ppmr_data(ppmr_data, species = fit$species) |>
-        filter(species == !!fit$species,
-               w_pred >= fit$min_w_pred)
-    n_prey <- sum(ppmr_data$n_prey)
-    ppmr_data$biomass <- ppmr_data$n_prey * ppmr_data$w_prey
-    lmin <- max(0, Hmisc::wtd.quantile(ppmr_data$log_ppmr, ppmr_data$biomass, 0.001) - 2)
-    lmax <- Hmisc::wtd.quantile(ppmr_data$log_ppmr, ppmr_data$n_prey, 0.999) + 2
-    grid <- seq(lmin, lmax, length.out = 200)
-    fit0 <- transform_fit(fit, 0)
-    fit1 <- transform_fit(fit, 1)
-    dist <- rbind(
-        data.frame(log_ppmr = grid, Density = get_density(grid, fit0), Type = "Number"),
-        data.frame(log_ppmr = grid, Density = get_density(grid, fit1), Type = "Biomass")
-    )
 
-    plot_subtitle <- paste("Fit of", fit$distribution, "to")
-    if (fit$power == 0) {
-        plot_subtitle <- paste(plot_subtitle, "number density")
-    } else if (fit$power == 1) {
-        plot_subtitle <- paste(plot_subtitle, "biomass density")
-    } else {
-        plot_subtitle <- paste(plot_subtitle, "density with power", fit$power)
+    # Build per-species data for overlay curves and filtered observations
+    all_ppmr <- list()
+    all_dist <- list()
+    for (i in seq_len(nrow(fit))) {
+        sp <- fit$species[i]
+        fit_row <- as.list(fit[i, ])
+        sp_data <- validate_ppmr_data(ppmr_data, species = sp) |>
+            filter(species == !!sp,
+                   w_pred >= fit$min_w_pred[i])
+        sp_data$biomass <- sp_data$n_prey * sp_data$w_prey
+        all_ppmr[[i]] <- sp_data
+
+        lmin <- max(0, Hmisc::wtd.quantile(sp_data$log_ppmr, sp_data$biomass, 0.001) - 2)
+        lmax <- Hmisc::wtd.quantile(sp_data$log_ppmr, sp_data$n_prey, 0.999) + 2
+        grid <- seq(lmin, lmax, length.out = 200)
+        fit0 <- transform_fit(fit[i, , drop = FALSE], 0)
+        fit1 <- transform_fit(fit[i, , drop = FALSE], 1)
+        all_dist[[i]] <- rbind(
+            data.frame(species = sp, log_ppmr = grid,
+                       Density = get_density(grid, fit0), Type = "Number"),
+            data.frame(species = sp, log_ppmr = grid,
+                       Density = get_density(grid, fit1), Type = "Biomass")
+        )
     }
-    plot_subtitle <- paste(plot_subtitle, "with", n_prey, "prey.")
+    ppmr_combined <- do.call(rbind, all_ppmr)
+    dist_combined <- do.call(rbind, all_dist)
 
+    # For single species, use existing detailed plot style
+    if (nrow(fit) == 1) {
+        fit_row <- as.list(fit[1, ])
+        n_prey <- sum(ppmr_combined$n_prey)
+        plot_subtitle <- paste("Fit of", fit_row$distribution, "to")
+        if (fit_row$power == 0) {
+            plot_subtitle <- paste(plot_subtitle, "number density")
+        } else if (fit_row$power == 1) {
+            plot_subtitle <- paste(plot_subtitle, "biomass density")
+        } else {
+            plot_subtitle <- paste(plot_subtitle, "density with power", fit_row$power)
+        }
+        plot_subtitle <- paste(plot_subtitle, "with", n_prey, "prey.")
+
+        fill_scale <- scale_fill_manual(
+            name = "Observed density",
+            values = c("Number" = "lightblue", "Biomass" = "#ffcccb")
+        )
+        colour_scale <- scale_color_manual(
+            name = paste("Fitted", fit_row$distribution),
+            values = c("Number" = "blue", "Biomass" = "red")
+        )
+
+        if (type == "kernel") {
+            return(
+                ggplot(ppmr_combined) +
+                    geom_density(aes(log_ppmr, weight = n_prey, fill = "Number"),
+                                 alpha = 0.7) +
+                    geom_density(aes(log_ppmr, weight = biomass, fill = "Biomass"),
+                                 alpha = 0.5) +
+                    geom_line(aes(log_ppmr, Density, color = Type), data = dist_combined) +
+                    xlab("Log of predator/prey mass ratio") +
+                    xlim(min(dist_combined$log_ppmr), max(dist_combined$log_ppmr)) +
+                    ggtitle(fit_row$species, subtitle = plot_subtitle) +
+                    fill_scale + colour_scale
+            )
+        } else {
+            no_bins <- 30
+            hist_min <- min(ppmr_combined$log_ppmr)
+            hist_max <- max(ppmr_combined$log_ppmr)
+            binsize <- (hist_max - hist_min) / (no_bins - 1)
+            breaks <- seq(hist_min - binsize / 2, by = binsize, length.out = no_bins + 1)
+            grid <- seq(hist_min, hist_max, length.out = 200)
+            fit0 <- transform_fit(fit, 0)
+            fit1 <- transform_fit(fit, 1)
+            dist_combined <- rbind(
+                data.frame(log_ppmr = grid, Density = get_density(grid, fit0), Type = "Number"),
+                data.frame(log_ppmr = grid, Density = get_density(grid, fit1), Type = "Biomass")
+            )
+            binned <- ppmr_combined |>
+                mutate(bin = cut(log_ppmr, breaks = breaks, right = FALSE,
+                                 labels = FALSE)) |>
+                filter(!is.na(bin)) |>
+                group_by(bin) |>
+                summarise(Number  = sum(n_prey),
+                          Biomass = sum(biomass),
+                          .groups = "drop") |>
+                mutate(Number  = Number  / sum(Number)  / binsize,
+                       Biomass = Biomass / sum(Biomass) / binsize,
+                       log_ppmr = breaks[bin] + binsize / 2)
+            binned_long <- rbind(
+                data.frame(log_ppmr = binned$log_ppmr,
+                           Density  = binned$Number,  Type = "Number"),
+                data.frame(log_ppmr = binned$log_ppmr,
+                           Density  = binned$Biomass, Type = "Biomass")
+            )
+            return(
+                ggplot(binned_long) +
+                    geom_col(aes(log_ppmr, Density, fill = Type)) +
+                    geom_line(aes(log_ppmr, Density, colour = Type), data = dist_combined) +
+                    facet_grid(~ Type, scales = "free_y") +
+                    xlab("Log of predator/prey mass ratio") +
+                    ggtitle(fit_row$species, subtitle = plot_subtitle) +
+                    fill_scale + colour_scale
+            )
+        }
+    }
+
+    # Multi-species: faceted kernel density plot
     fill_scale <- scale_fill_manual(
         name = "Observed density",
         values = c("Number" = "lightblue", "Biomass" = "#ffcccb")
     )
     colour_scale <- scale_color_manual(
-        name = paste("Fitted", fit$distribution),
+        name = "Fitted density",
         values = c("Number" = "blue", "Biomass" = "red")
     )
-
-    if (type == "kernel") {
-        ggplot(ppmr_data) +
-            geom_density(aes(log_ppmr, weight = n_prey, fill = "Number"),
-                         alpha = 0.7) +
-            geom_density(aes(log_ppmr, weight = biomass, fill = "Biomass"),
-                         alpha = 0.5) +
-            geom_line(aes(log_ppmr, Density, color = Type), data = dist) +
-            xlab("Log of predator/prey mass ratio") +
-            xlim(lmin, lmax) +
-            ggtitle(fit$species, subtitle = plot_subtitle) +
-            fill_scale + colour_scale
-    } else {
-        no_bins <- 30
-        hist_min <- min(ppmr_data$log_ppmr)
-        hist_max <- max(ppmr_data$log_ppmr)
-        binsize <- (hist_max - hist_min) / (no_bins - 1)
-        breaks <- seq(hist_min - binsize / 2, by = binsize, length.out = no_bins + 1)
-        grid <- seq(hist_min, hist_max, length.out = 200)
-        dist <- rbind(
-            data.frame(log_ppmr = grid, Density = get_density(grid, fit0), Type = "Number"),
-            data.frame(log_ppmr = grid, Density = get_density(grid, fit1), Type = "Biomass")
-        )
-        binned <- ppmr_data |>
-            mutate(bin = cut(log_ppmr, breaks = breaks, right = FALSE,
-                             labels = FALSE)) |>
-            filter(!is.na(bin)) |>
-            group_by(bin) |>
-            summarise(Number  = sum(n_prey),
-                      Biomass = sum(biomass),
-                      .groups = "drop") |>
-            mutate(Number  = Number  / sum(Number)  / binsize,
-                   Biomass = Biomass / sum(Biomass) / binsize,
-                   log_ppmr = breaks[bin] + binsize / 2)
-        binned_long <- rbind(
-            data.frame(log_ppmr = binned$log_ppmr,
-                       Density  = binned$Number,  Type = "Number"),
-            data.frame(log_ppmr = binned$log_ppmr,
-                       Density  = binned$Biomass, Type = "Biomass")
-        )
-        ggplot(binned_long) +
-            geom_col(aes(log_ppmr, Density, fill = Type)) +
-            geom_line(aes(log_ppmr, Density, colour = Type), data = dist) +
-            facet_grid(~ Type, scales = "free_y") +
-            xlab("Log of predator/prey mass ratio") +
-            ggtitle(fit$species, subtitle = plot_subtitle) +
-            fill_scale + colour_scale
-    }
+    ggplot(ppmr_combined) +
+        geom_density(aes(log_ppmr, weight = n_prey, fill = "Number"),
+                     alpha = 0.7) +
+        geom_density(aes(log_ppmr, weight = biomass, fill = "Biomass"),
+                     alpha = 0.5) +
+        geom_line(aes(log_ppmr, Density, color = Type), data = dist_combined) +
+        facet_wrap(~ species, scales = "free") +
+        xlab("Log of predator/prey mass ratio") +
+        fill_scale + colour_scale
 }
+
 
 #' Violin plots of predator/prey mass ratios for different predator weights
 #'

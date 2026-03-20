@@ -108,7 +108,7 @@ server <- function(input, output) {
     output$distPlot <- renderPlot({
         req(input$sp)
         f <- fits()
-        fit <- as.list(f[input$sp, ])
+        fit <- f[input$sp, , drop = FALSE]
 
         plot_log_ppmr_fit(ppmr_data, fit)
     })

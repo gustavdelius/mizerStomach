@@ -1,8 +1,8 @@
 #' Fit a distribution to log ppmr observations
 #'
-#' @param ppmr_data A data frame with log ppmr observations, See
-#'   [validate_ppmr_data()] for details
-#' @param species A character string with the species name
+#' @param ppmr_data A data frame with log ppmr observations. See
+#'   [validate_ppmr_data()] for details.
+#' @param species A character vector with one or more species names.
 #' @param distribution The distribution to fit. One of "normal",
 #'   "trunc_exp" or "gauss_mix".
 #' @param min_w_pred The minimum predator weight to include. Default is 0.
@@ -10,7 +10,8 @@
 #'   default is 0 which means that each prey individual contributes equally.
 #'   `power = 1` means each prey individual contributes in proportion to its
 #'   biomass.
-#' @return A `fit` object. See [validate_fit()] for details
+#' @return A fit data frame with one row per species.
+#'   See [validate_fit()] for details.
 #' @export
 fit_log_ppmr <-
   function(ppmr_data, species,
@@ -18,27 +19,38 @@ fit_log_ppmr <-
            min_w_pred = 0, power = 0) {
     distribution <- match.arg(distribution)
     ppmr_data <- validate_ppmr_data(ppmr_data)
-    if (!species %in% unique(ppmr_data$species)) {
-      stop("Species", fit$species, "not found in ppmr data")
+    missing <- setdiff(species, unique(ppmr_data$species))
+    if (length(missing) > 0) {
+      stop("Species not found in ppmr data: ",
+           paste(missing, collapse = ", "))
     }
-    data <- ppmr_data |>
-        filter(species == !!species,
-               w_pred >= min_w_pred)
-    value <- data$log_ppmr
-    weight <- data$n_prey * data$w_prey ^ power
 
-    if (distribution == "normal") {
-      fit <- fit_normal(value, weight)
-    } else if (distribution == "trunc_exp") {
-      fit <- fit_truncated_exponential(value, weight)
-    } else if (distribution == "gauss_mix") {
-      fit <- fit_gaussian_mixture(value, weight)
-    }
-    fit$species <- species
-    fit$distribution <- distribution
-    fit$power <- power
-    fit$min_w_pred <- min_w_pred
-    return(fit)
+    rows <- lapply(species, function(sp) {
+      data <- ppmr_data |>
+        filter(species == !!sp,
+               w_pred >= min_w_pred)
+      value <- data$log_ppmr
+      weight <- data$n_prey * data$w_prey ^ power
+
+      if (distribution == "normal") {
+        fit <- fit_normal(value, weight)
+      } else if (distribution == "trunc_exp") {
+        fit <- fit_truncated_exponential(value, weight)
+      } else if (distribution == "gauss_mix") {
+        fit <- fit_gaussian_mixture(value, weight)
+      }
+      fit$species <- sp
+      fit$distribution <- distribution
+      fit$power <- power
+      fit$min_w_pred <- min_w_pred
+      # Convert to a one-row data frame, wrapping vector values in lists
+      as.data.frame(lapply(fit, function(v) {
+        if (length(v) > 1) I(list(v)) else v
+      }), stringsAsFactors = FALSE)
+    })
+    result <- do.call(rbind, rows)
+    rownames(result) <- result$species
+    return(result)
   }
 
 #' Fit a normal distribution to weighted observations

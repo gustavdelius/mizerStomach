@@ -31,66 +31,75 @@ validate_weighted_observations <- function(value, weight) {
 
 #' Validate a fit object
 #'
-#' @param fit A list with the fitted distribution parameters
-#' @return The valid fit object
+#' A fit object is a data frame with one row per species, containing columns
+#' for the fitted distribution parameters. Required columns are `species` and
+#' `distribution`. Optional columns `power` (default 0) and `min_w_pred`
+#' (default 0) are added if missing.
+#'
+#' For backwards compatibility, a named list with the same fields is also
+#' accepted and silently converted to a single-row data frame.
+#'
+#' @param fit A data frame or list with the fitted distribution parameters
+#' @return The valid fit data frame with species as rownames
 #' @family validation functions
 #' @export
 validate_fit <- function(fit) {
-    if (!is.list(fit)) {
-        stop("fit must be a list")
+    # Backwards compatibility: accept a named list and convert to data frame
+    if (is.list(fit) && !is.data.frame(fit)) {
+        fit <- as.data.frame(lapply(fit, function(v) {
+            if (length(v) > 1) I(list(v)) else v
+        }), stringsAsFactors = FALSE)
+    }
+    if (!is.data.frame(fit)) {
+        stop("fit must be a data frame (or a named list)")
     }
     if (!hasName(fit, "species")) {
-        stop("fit must have a `species` attribute")
+        stop("fit must have a `species` column")
     }
     if (!hasName(fit, "power")) {
         fit$power <- 0
     }
     if (!hasName(fit, "distribution")) {
-        stop("fit must have a `distribution` attribute")
+        stop("fit must have a `distribution` column")
     }
     if (!hasName(fit, "min_w_pred")) {
         fit$min_w_pred <- 0
     }
-    if (fit$distribution == "normal") {
-        if (!hasName(fit, "mean")) {
-            stop("fit must have a `mean` attribute")
+    for (i in seq_len(nrow(fit))) {
+        row <- fit[i, ]
+        dist <- row$distribution
+        sp <- row$species
+        if (dist == "normal") {
+            if (!hasName(fit, "mean")) {
+                stop("fit for ", sp, " must have a `mean` column")
+            }
+            if (!hasName(fit, "sd")) {
+                stop("fit for ", sp, " must have a `sd` column")
+            }
+        } else if (dist == "trunc_exp") {
+            for (col in c("alpha", "ll", "ul", "lr", "ur")) {
+                if (!hasName(fit, col)) {
+                    stop("fit for ", sp, " must have a `", col, "` column")
+                }
+            }
+        } else if (dist == "gauss_mix") {
+            for (col in c("mean", "sd", "p")) {
+                if (!hasName(fit, col)) {
+                    stop("fit for ", sp, " must have a `", col, "` column")
+                }
+            }
+            row_mean <- if (is.list(row$mean)) row$mean[[1]] else row$mean
+            row_sd <- if (is.list(row$sd)) row$sd[[1]] else row$sd
+            row_p <- if (is.list(row$p)) row$p[[1]] else row$p
+            if (!all(length(row_mean) == length(row_sd),
+                     length(row_mean) == length(row_p))) {
+                stop("mean, sd and p must have the same length for ", sp)
+            }
+        } else {
+            stop("Unknown distribution ", dist, " for ", sp)
         }
-        if (!hasName(fit, "sd")) {
-            stop("fit must have a `sd` attribute")
-        }
-    } else if (fit$distribution == "trunc_exp") {
-        if (!hasName(fit, "alpha")) {
-            stop("fit must have an `alpha` attribute")
-        }
-        if (!hasName(fit, "ll")) {
-            stop("fit must have an `ll` attribute")
-        }
-        if (!hasName(fit, "ul")) {
-            stop("fit must have an `ul` attribute")
-        }
-        if (!hasName(fit, "lr")) {
-            stop("fit must have an `lr` attribute")
-        }
-        if (!hasName(fit, "ur")) {
-            stop("fit must have an `ur` attribute")
-        }
-    } else if (fit$distribution == "gauss_mix") {
-        if (!hasName(fit, "mean")) {
-            stop("fit must have a `mean` attribute")
-        }
-        if (!hasName(fit, "sd")) {
-            stop("fit must have a `sd` attribute")
-        }
-        if (!hasName(fit, "p")) {
-            stop("fit must have a `p` attribute")
-        }
-        if (!all(length(fit$mean) == length(fit$sd),
-                 length(fit$mean) == length(fit$p))) {
-            stop("mean, sd and p must have the same length")
-        }
-    } else {
-        stop("Unknown distribution ", fit$distribution)
     }
+    rownames(fit) <- fit$species
     return(fit)
 }
 
@@ -122,7 +131,7 @@ validate_ppmr_data <- function(ppmr_data, species = NULL) {
     }
     if (!is.null(species)) {
         if (!species %in% unique(ppmr_data$species)) {
-            stop("Species", fit$species, "not found in ppmr data")
+            stop("Species ", species, " not found in ppmr data")
         }
         ppmr_data <- ppmr_data[ppmr_data$species == species, ]
     }

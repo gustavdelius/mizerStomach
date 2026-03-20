@@ -1,20 +1,40 @@
 #' Get density from a fit object
 #'
 #' @param x A numeric vector of values at which to evaluate the density
-#' @param fit A fit object
-#' @return A numeric vector of densities
+#' @param fit A fit data frame (one or more rows)
+#' @return If `fit` has a single row, a numeric vector of densities. If `fit`
+#'   has multiple rows, a matrix with one column per species.
 #' @export
 get_density <- function(x, fit) {
     fit <- validate_fit(fit)
+    if (nrow(fit) == 1) {
+        return(get_density_single(x, as.list(fit[1, ])))
+    }
+    result <- sapply(seq_len(nrow(fit)), function(i) {
+        get_density_single(x, as.list(fit[i, ]))
+    })
+    colnames(result) <- fit$species
+    return(result)
+}
+
+#' Get density for a single species from a fit list
+#' @param x A numeric vector of values
+#' @param fit A named list with fitted parameters for one species
+#' @return A numeric vector of densities
+#' @keywords internal
+get_density_single <- function(x, fit) {
     if (fit$distribution == "normal") {
         d <- dnorm(x, mean = fit$mean, sd = fit$sd)
     } else if (fit$distribution == "trunc_exp") {
         d <- dtexp(x, alpha = fit$alpha, ll = fit$ll, ul = fit$ul,
                    lr = fit$lr, ur = fit$ur)
     } else if (fit$distribution == "gauss_mix") {
+        p <- if (is.list(fit$p)) fit$p[[1]] else fit$p
+        means <- if (is.list(fit$mean)) fit$mean[[1]] else fit$mean
+        sds <- if (is.list(fit$sd)) fit$sd[[1]] else fit$sd
         d <- x * 0
-        for (i in seq_along(fit$p)) {
-            d <- d + fit$p[i] * dnorm(x, mean = fit$mean[i], sd = fit$sd[i])
+        for (i in seq_along(p)) {
+            d <- d + p[i] * dnorm(x, mean = means[i], sd = sds[i])
         }
     }
     return(d)
