@@ -191,12 +191,33 @@ fit_shiny <- function(ppmr_data,
             cache <- cache_rv()
             if (is.null(cache[[sp]][[new_dist]])) {
                 old_fit <- cache[[sp]][[old_dist]]
-                cache[[sp]][[new_dist]] <- make_default_fit(
-                    sp, new_dist,
-                    power      = old_fit$power,
-                    min_w_pred = old_fit$min_w_pred
-                )
-                cache_rv(cache)
+                if (sp %in% ppmr_data$species) {
+                    tryCatch({
+                        new_fit <- fit_log_ppmr(ppmr_data, species = sp,
+                                                distribution = new_dist)
+                        cache[[sp]][[new_dist]] <- new_fit
+                        cache_rv(cache)
+                        update_sliders_from_fit(new_fit, new_dist)
+                    }, error = function(e) {
+                        shiny::showNotification(
+                            paste("Auto-fit failed, using defaults:", conditionMessage(e)),
+                            type = "warning"
+                        )
+                        cache[[sp]][[new_dist]] <- make_default_fit(
+                            sp, new_dist,
+                            power      = old_fit$power,
+                            min_w_pred = old_fit$min_w_pred
+                        )
+                        cache_rv(cache)
+                    })
+                } else {
+                    cache[[sp]][[new_dist]] <- make_default_fit(
+                        sp, new_dist,
+                        power      = old_fit$power,
+                        min_w_pred = old_fit$min_w_pred
+                    )
+                    cache_rv(cache)
+                }
             }
         })
 
