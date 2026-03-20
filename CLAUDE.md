@@ -23,7 +23,7 @@ Run the interactive Shiny app:
 shiny::runApp("inst/app.R")
 ```
 
-There are no automated tests. Vignettes in `vignettes/` serve as executable documentation.
+Run tests with `devtools::test()`. Test files are in `tests/testthat/`. Vignettes in `vignettes/` serve as executable documentation.
 
 ## Architecture
 
@@ -40,7 +40,7 @@ There are no automated tests. Vignettes in `vignettes/` serve as executable docu
 ### Three Supported Distributions
 
 1. **Normal**: `mean`, `sd`
-2. **Truncated exponential** (`trunc_exp`): `alpha`, `ll`, `ul`, `lr`, `ur` — fitted via `bbmle::mle2()` with L-BFGS-B
+2. **Truncated exponential** (`trunc_exp`): `alpha`, `ll`, `ul`, `lr`, `ur` — fitted via `bbmle::mle2()`
 3. **Gaussian mixture** (`gauss_mix`): `p`, `mean`, `sd` — fitted via EM algorithm (default k=2 components)
 
 ### Fit Object Convention

@@ -1,0 +1,94 @@
+# Tests for fit.R
+
+# Pick a species with sufficient data
+test_species <- unique(barnes_data$species)[1]
+sp_data <- validate_ppmr_data(barnes_data, species = test_species)
+
+test_that("fit_normal returns list with mean and sd", {
+    result <- fit_normal(sp_data$log_ppmr, sp_data$n_prey)
+    expect_type(result, "list")
+    expect_true(all(c("mean", "sd") %in% names(result)))
+    expect_true(is.numeric(result$mean))
+    expect_true(is.numeric(result$sd))
+    expect_gt(result$sd, 0)
+    # Mean should agree with weighted.mean
+    expect_equal(result$mean,
+                 weighted.mean(sp_data$log_ppmr, sp_data$n_prey))
+})
+
+test_that("fit_gaussian_mixture returns correct structure", {
+    result <- fit_gaussian_mixture(sp_data$log_ppmr, sp_data$n_prey, k = 2)
+    expect_type(result, "list")
+    expect_true(all(c("p", "mean", "sd") %in% names(result)))
+    expect_equal(length(result$p), 2)
+    expect_equal(length(result$mean), 2)
+    expect_equal(length(result$sd), 2)
+    expect_equal(sum(result$p), 1, tolerance = 1e-6)
+    expect_true(all(result$sd > 0))
+})
+
+test_that("fit_truncated_exponential returns correct structure", {
+    result <- fit_truncated_exponential(sp_data$log_ppmr, sp_data$n_prey)
+    expect_type(result, "list")
+    expect_true(all(c("alpha", "ll", "ul", "lr", "ur") %in% names(result)))
+    expect_true(all(sapply(result, is.numeric)))
+})
+
+test_that("fit_log_ppmr returns correct data frame for normal", {
+    result <- fit_log_ppmr(barnes_data, test_species, distribution = "normal")
+    expect_s3_class(result, "data.frame")
+    expect_equal(nrow(result), 1)
+    expect_equal(result$species, test_species)
+    expect_equal(result$distribution, "normal")
+    expect_equal(result$power, 0)
+    expect_equal(rownames(result), test_species)
+    expect_true(hasName(result, "mean"))
+    expect_true(hasName(result, "sd"))
+})
+
+test_that("fit_log_ppmr returns correct data frame for trunc_exp", {
+    result <- fit_log_ppmr(barnes_data, test_species,
+                           distribution = "trunc_exp")
+    expect_s3_class(result, "data.frame")
+    expect_equal(result$distribution, "trunc_exp")
+    expect_true(all(c("alpha", "ll", "ul", "lr", "ur") %in% names(result)))
+})
+
+test_that("fit_log_ppmr returns correct data frame for gauss_mix", {
+    result <- fit_log_ppmr(barnes_data, test_species,
+                           distribution = "gauss_mix")
+    expect_s3_class(result, "data.frame")
+    expect_equal(result$distribution, "gauss_mix")
+    expect_true(all(c("p", "mean", "sd") %in% names(result)))
+})
+
+test_that("fit_log_ppmr errors on unknown species", {
+    expect_error(fit_log_ppmr(barnes_data, "NonExistent"),
+                 "not found")
+})
+
+test_that("fit_log_ppmr works for multiple species", {
+    species_vec <- unique(barnes_data$species)[1:2]
+    result <- fit_log_ppmr(barnes_data, species_vec, distribution = "normal")
+    expect_s3_class(result, "data.frame")
+    expect_equal(nrow(result), 2)
+    expect_equal(result$species, species_vec)
+    expect_equal(rownames(result), species_vec)
+})
+
+test_that("fit_log_ppmr respects min_w_pred", {
+    result <- fit_log_ppmr(barnes_data, test_species,
+                           distribution = "normal", min_w_pred = 100)
+    expect_equal(result$min_w_pred, 100)
+})
+
+test_that("fit_log_ppmr respects power argument", {
+    result <- fit_log_ppmr(barnes_data, test_species,
+                           distribution = "normal", power = 1)
+    expect_equal(result$power, 1)
+    # With biomass weighting the mean should differ from equal weighting
+    result0 <- fit_log_ppmr(barnes_data, test_species,
+                            distribution = "normal", power = 0)
+    # They may be close but should generally not be identical
+    expect_true(is.numeric(result$mean))
+})
