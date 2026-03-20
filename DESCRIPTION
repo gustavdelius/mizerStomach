@@ -22,7 +22,8 @@ Remotes:
     sizespectrum/mizerExperimental
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
 Collate:
     'mizerStomach-package.R'
     'data.R'
@@ -36,3 +37,4 @@ RoxygenNote: 7.3.3
 Roxygen: list(markdown = TRUE)
 Depends: 
     R (>= 3.5)
+Config/testthat/edition: 3

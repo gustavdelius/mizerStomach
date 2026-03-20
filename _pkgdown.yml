@@ -11,6 +11,9 @@ reference:
 - title: Plotting
   contents:
   - starts_with("plot")
+- title: Data
+  contents:
+  - barnes_data
 - title: Validation
   contents:
   - has_concept("validation functions")
