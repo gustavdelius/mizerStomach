@@ -86,7 +86,8 @@ plot_log_ppmr_fit <- function(ppmr_data, fit, type = c("kernel", "histogram")) {
                     xlab("Log of predator/prey mass ratio") +
                     xlim(min(dist_combined$log_ppmr), max(dist_combined$log_ppmr)) +
                     ggtitle(fit_row$species, subtitle = plot_subtitle) +
-                    fill_scale + colour_scale
+                    fill_scale + colour_scale +
+                    theme(text = element_text(size = 14))
             )
         } else {
             no_bins <- 30
@@ -125,7 +126,8 @@ plot_log_ppmr_fit <- function(ppmr_data, fit, type = c("kernel", "histogram")) {
                     facet_grid(~ Type, scales = "free_y") +
                     xlab("Log of predator/prey mass ratio") +
                     ggtitle(fit_row$species, subtitle = plot_subtitle) +
-                    fill_scale + colour_scale
+                    fill_scale + colour_scale +
+                    theme(text = element_text(size = 14))
             )
         }
     }
@@ -147,7 +149,8 @@ plot_log_ppmr_fit <- function(ppmr_data, fit, type = c("kernel", "histogram")) {
         geom_line(aes(log_ppmr, Density, color = Type), data = dist_combined) +
         facet_wrap(~ species, scales = "free") +
         xlab("Log of predator/prey mass ratio") +
-        fill_scale + colour_scale
+        fill_scale + colour_scale +
+        theme(text = element_text(size = 14))
 }
 
 
