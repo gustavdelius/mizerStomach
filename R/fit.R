@@ -125,10 +125,10 @@ extract_fit <- function(params) {
   is_normal   <- distribution == "normal"
   is_trunc    <- distribution == "trunc_exp"
 
-  fits <- data.frame(
+  fit <- data.frame(
     species      = species_params$species,
     distribution = distribution,
-    power        = 2/3,
+    power        = params@resource_params$lambda - 4/3,
     min_w_pred   = 0,
     mean         = ifelse(is_normal, log(species_params$beta),    NA_real_),
     sd           = ifelse(is_normal, species_params$sigma,        NA_real_),
@@ -139,8 +139,9 @@ extract_fit <- function(params) {
     ur           = ifelse(is_trunc,  species_params$kernel_u_r,   NA_real_),
     stringsAsFactors = FALSE
   )
-  rownames(fits) <- fits$species
-  return(fits)
+  rownames(fit) <- fit$species
+  fit <- transform_fit(fit, power = 0)
+  return(fit)
 }
 
 #' Fit a normal distribution to weighted observations
