@@ -1,9 +1,43 @@
-#' Transform a fitted distribution to represent data weighted by a different
-#' power of w
+#' Re-express a fit at a different prey-mass weighting
 #'
-#' @param fit A fit data frame (one or more rows)
-#' @param power The power to raise the weights to
-#' @return An updated fit data frame
+#' Applies family-specific parameter changes to fitted log-PPMR distributions
+#' when observations are reweighted by another power of prey mass.
+#'
+#' @param fit A fit data frame with one or more rows, accepted by
+#'   [validate_fit()]. Each row's current weighting exponent is read from its
+#'   `power` column; a missing column is interpreted as zero.
+#' @param power Single numeric value giving the target exponent of `w_prey` in
+#'   the observation weights.
+#'
+#' @details
+#' If a fit was obtained with weights \eqn{n_{prey}w_{prey}^{q_0}} and the
+#' requested exponent is \eqn{q_1}, let \eqn{\Delta q=q_1-q_0}. For
+#' \eqn{l=\log(w_{pred}/w_{prey})}, changing the exponent exponentially tilts
+#' the fitted density by a factor proportional to
+#' \eqn{\exp(-\Delta q\,l)}. For the normal and truncated-exponential families,
+#' this tilt remains in the same family and is exact:
+#'
+#' * a normal mean changes from \eqn{\mu} to
+#'   \eqn{\mu-\Delta q\,\sigma^2}, while `sd` is unchanged;
+#' * a truncated-exponential `alpha` changes to `alpha - delta_q`, while its
+#'   cutoff parameters are unchanged.
+#'
+#' For a Gaussian mixture, every component mean and the component proportions
+#' are updated by [transform_gaussian_mixture()], while component standard
+#' deviations are unchanged.
+#'
+#' Each row is transformed using its own existing `power`, after which all
+#' rows have `power` set to the requested value. The input data frame is not
+#' modified. This transformation assumes that the fitted log-PPMR distribution
+#' can be represented independently of predator size; it is not a refit and
+#' does not inspect the original observations.
+#'
+#' @return A validated fit data frame with transformed family parameters and
+#'   `power` set to the requested value.
+#'
+#' @seealso [fit_log_ppmr()] for fitting at a chosen power and
+#'   `vignette("density_functions", package = "mizerStomach")` for the
+#'   derivation of these transformations.
 #' @examples
 #' # Fit a normal distribution and transform to biomass weighting
 #' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
@@ -46,11 +80,19 @@ transform_fit <- function(fit, power) {
     return(fit)
 }
 
-#' Transform a normal distribution to represent data weighted by a power of w
+#' Exponentially tilt a normal distribution
 #'
-#' @param fit A list with the parameters `mean` and `sd`
-#' @param power The power to raise the weights to
-#' @return A list with the updated parameters
+#' @param fit A named list with numeric elements `mean` and `sd`.
+#' @param power Numeric exponent by which prey-mass weighting is increased.
+#'
+#' @details
+#' Multiplying a normal density in log PPMR \eqn{l} by
+#' \eqn{\exp(-q l)} and renormalizing gives another normal density. Its mean is
+#' `mean - power * sd^2` and its standard deviation is unchanged. Unlike
+#' [transform_fit()], this low-level helper interprets `power` as the change in
+#' exponent, not as an absolute target, and it does no validation.
+#'
+#' @return `fit` with its `mean` replaced by the transformed mean.
 #' @examples
 #' fit <- list(mean = 5.0, sd = 2.0)
 #' transform_normal(fit, power = 1)
@@ -61,11 +103,19 @@ transform_normal <- function(fit, power = 1) {
     return(fit)
 }
 
-#' Transform a truncated exponential distribution to represent data weighted by a power of w
+#' Exponentially tilt a truncated exponential distribution
 #'
-#' @param fit A list with the parameters `exp`, `ll`, `ul`, `lr`, `ur`
-#' @param power The power to raise the weights to
-#' @return A list with the updated parameters
+#' @param fit A named list with numeric elements `alpha`, `ll`, `ul`, `lr`, and
+#'   `ur`; see [dtexp()].
+#' @param power Numeric exponent by which prey-mass weighting is increased.
+#'
+#' @details
+#' Multiplication by \eqn{\exp(-q l)} changes the exponential slope from
+#' `alpha` to `alpha - power`; the two cutoff locations and steepnesses are
+#' unchanged. Unlike [transform_fit()], this low-level helper interprets
+#' `power` as the change in exponent and does no validation.
+#'
+#' @return `fit` with its `alpha` element replaced by the transformed value.
 #' @examples
 #' fit <- list(alpha = 0.5, ll = 2, ul = 20, lr = 12, ur = 20)
 #' transform_truncated_exp(fit, power = 1)
@@ -76,12 +126,21 @@ transform_truncated_exp <- function(fit, power = 1) {
     return(fit)
 }
 
-#' Transform a Gaussian mixture distribution to represent data weighted by a power of w
+#' Transform the weighting of a Gaussian mixture distribution
 #'
-#' @param fit A list with entries `mean`, `sd` and `p`, each of which is a
-#'   vector with one entry for each component of the mixture
-#' @param power The power to raise the weights to
-#' @return A list with the updated parameters
+#' @param fit A named list with numeric vectors `mean`, `sd`, and `p`, one value
+#'   per mixture component. The component proportions in `p` should sum to one.
+#' @param power Numeric exponent by which prey-mass weighting is increased.
+#'
+#' @details
+#' Let \eqn{q} be `power`. The implementation first changes each component mean
+#' from \eqn{\mu_j} to \eqn{\tilde\mu_j=\mu_j-q\sigma_j^2}. It retains the
+#' standard deviations and sets the component proportions proportional to
+#' \eqn{p_j\exp(-q\tilde\mu_j+q^2\sigma_j^2/2)}, then normalizes them to sum to
+#' one. Unlike [transform_fit()], this low-level helper interprets `power` as
+#' the change in exponent and does no validation.
+#'
+#' @return `fit` with transformed `mean` and normalized `p`; `sd` is unchanged.
 #' @examples
 #' fit <- list(p = c(0.3, 0.7), mean = c(3, 7), sd = c(1, 2))
 #' transform_gaussian_mixture(fit, power = 1)
@@ -93,4 +152,3 @@ transform_gaussian_mixture <- function(fit, power = 1) {
     fit$p <- p / sum(p)
     return(fit)
 }
-

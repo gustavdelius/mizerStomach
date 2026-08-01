@@ -2,12 +2,19 @@
 
 #' Validate weighted observations
 #'
-#' This is an internal function that checks that the arguments to the fitting
+#' Checks the basic shape and type requirements shared by the low-level fitting
+#' functions.
 #'
+#' @param value Vector of observed values.
+#' @param weight Vector of observation weights.
 #'
-#' @param value A numeric vector of observed values
-#' @param weight A numeric vector of weights
-#' @return TRUE if the arguments are valid. Raises and error otherwise.
+#' @details
+#' The function requires at least ten entries in `value`, equal vector lengths,
+#' numeric values and weights, and no negative weights. The ten-entry condition
+#' concerns rows rather than the sum of frequency weights. Distribution-
+#' specific conditions are left to the fitting routines.
+#'
+#' @return `TRUE`. An informative error is raised when a check fails.
 #' @keywords internal
 #' @family validation functions
 validate_weighted_observations <- function(value, weight) {
@@ -29,18 +36,33 @@ validate_weighted_observations <- function(value, weight) {
     return(TRUE)
 }
 
-#' Validate a fit object
+#' Validate and standardize a fit data frame
 #'
-#' A fit object is a data frame with one row per species, containing columns
-#' for the fitted distribution parameters. Required columns are `species` and
-#' `distribution`. Optional columns `power` (default 0) and `min_w_pred`
-#' (default 0) are added if missing.
+#' Checks that each row has the parameter columns required by its distribution,
+#' adds standard metadata defaults, and sets row names from species names.
 #'
-#' For backwards compatibility, a named list with the same fields is also
-#' accepted and silently converted to a single-row data frame.
+#' @param fit A data frame with one row per species, or a named list describing
+#'   one fit for backwards compatibility.
 #'
-#' @param fit A data frame or list with the fitted distribution parameters
-#' @return The valid fit data frame with species as rownames
+#' @details
+#' Every fit needs `species` and `distribution`. Missing `power` and
+#' `min_w_pred` columns are added with value zero. Required family-specific
+#' columns are:
+#'
+#' * `mean` and `sd` for `distribution = "normal"`;
+#' * `alpha`, `ll`, `ul`, `lr`, and `ur` for `"trunc_exp"`;
+#' * `mean`, `sd`, and `p` for `"gauss_mix"`.
+#'
+#' Gaussian-mixture parameters are normally list-columns; within each row,
+#' their three vectors must have equal lengths. A named list is converted to a
+#' one-row data frame, with vector-valued elements retained as list-columns.
+#'
+#' This function validates structure, not statistical admissibility: it does
+#' not, for example, check that standard deviations are positive, mixture
+#' weights sum to one, or cutoff parameters define a stable density.
+#'
+#' @return A data frame with any missing metadata columns added and row names
+#'   set to `fit$species`. The input object itself is not modified.
 #' @family validation functions
 #' @examples
 #' # Validate a fit data frame produced by fit_log_ppmr()
@@ -112,22 +134,35 @@ validate_fit <- function(fit) {
     return(fit)
 }
 
-#' Validate a data frame with predator/prey mass ratio observations
+#' Validate predator/prey mass-ratio observations
 #'
-#' The data frame needs to have the columns "species", "w_pred", "w_prey" and
-#' "n_prey". The function adds a `log_ppmr` column to the data frame with the
-#' logarithm of the predator/prey mass ratio.
+#' Checks the columns required by the fitting and plotting functions, optionally
+#' selects one predator species, and supplies log predator/prey mass ratios.
 #'
-#' If a `log_ppmr` column already exists, it is overwritten and a warning is
-#' issued if discrepancies were found. A warning is also issued if any prey
-#' is heavier than the predator.
+#' @param ppmr_data A data frame containing at least `species`, `w_pred`,
+#'   `w_prey`, and `n_prey`. Predator and prey masses must use the same mass
+#'   unit; package examples use grams. Extra columns are preserved.
+#' @param species Optional single character string. If supplied, only rows for
+#'   that predator species are returned; an absent species causes an error.
 #'
-#' @param ppmr_data A data frame with log ppmr observations
-#' @param species The species to select. Optional. If supplied the function only
-#'   selects the rows for the specified species. If the species is not found, an
-#'   error is raised.
-#' @return Valid ppmr data frame with columns "species", "w_pred", "w_prey",
-#'  "n_prey" and "log_ppmr" and rows for the specified species.
+#' @details
+#' The calculated value is
+#' \deqn{\mathrm{log\_ppmr}=\log(w_{pred})-\log(w_{prey})
+#' =\log(w_{pred}/w_{prey}).}
+#' If `log_ppmr` is absent, this column is appended. If it already exists, it is
+#' checked against the calculation and retained; a disagreement produces a
+#' warning. A warning is also issued when prey are heavier than their predator,
+#' which produces a negative log PPMR. Missing masses that make the calculated
+#' ratio `NA` cause an error.
+#'
+#' This is a format validator rather than a full data-cleaning routine. In
+#' particular, callers should ensure that masses are finite and positive and
+#' that `n_prey` contains meaningful non-negative counts or frequencies before
+#' fitting.
+#'
+#' @return The input data frame, optionally filtered by `species`, with a
+#'   `log_ppmr` column guaranteed to be present. Column classes and extra
+#'   columns are otherwise retained.
 #' @family validation functions
 #' @examples
 #' # Validate the barnes_data dataset

@@ -1,23 +1,64 @@
-#' Fit a distribution to log ppmr observations
+#' Fit distributions to log predator/prey mass ratios
 #'
-#' @param ppmr_data A data frame with log ppmr observations. See
-#'   [validate_ppmr_data()] for details.
-#' @param species A character vector with one or more species names. Ignored
-#'   if `fits` is provided.
-#' @param distribution The distribution to fit. One of "normal",
-#'   "trunc_exp" or "gauss_mix".
-#' @param min_w_pred The minimum predator weight to include. Default is 0.
-#' @param power Each observation is weighted by a power of the prey weight. The
-#'   default is 0 which means that each prey individual contributes equally.
-#'   `power = 1` means each prey individual contributes in proportion to its
-#'   biomass.
-#' @param fits An optional fit data frame (as returned by [fit_log_ppmr()]).
-#'   When provided, the species are taken from `fits` instead of the `species`
-#'   argument. For `distribution = "trunc_exp"`, the fitted parameters in
-#'   `fits` are used as starting values for the `mle2()` optimisation (only
-#'   when the corresponding row in `fits` also has `distribution = "trunc_exp"`).
-#' @return A fit data frame with one row per species.
-#'   See [validate_fit()] for details.
+#' Fits one distribution to the log predator/prey mass-ratio observations for
+#' each requested predator species. Rows can represent groups of identical
+#' observations through `n_prey`, and can additionally be weighted by prey
+#' mass.
+#'
+#' @param ppmr_data A data frame accepted by [validate_ppmr_data()]. It must
+#'   contain `species`, `w_pred`, `w_prey`, and `n_prey` columns; `log_ppmr` is
+#'   calculated when it is absent.
+#' @param species A character vector naming one or more predator species in
+#'   `ppmr_data`. Ignored when `fits` is supplied.
+#' @param distribution Character string selecting the fitted family. One of
+#'   `"normal"`, `"trunc_exp"`, or `"gauss_mix"`.
+#' @param min_w_pred Single numeric value. Observations with predator mass
+#'   `w_pred < min_w_pred` are excluded before fitting. The same threshold is
+#'   applied to every requested species and is stored in the result.
+#' @param power Single numeric value giving the exponent of prey mass in the
+#'   observation weights. Observation \eqn{i} receives weight
+#'   \eqn{n_i w_i^q}, where \eqn{n_i} is `n_prey`, \eqn{w_i} is `w_prey`, and
+#'   \eqn{q} is `power`. Thus `power = 0` fits the prey-number distribution and
+#'   `power = 1` fits the prey-biomass distribution.
+#' @param fits An optional fit data frame accepted by [validate_fit()]. When
+#'   supplied, its `species` column determines which species are fitted. For a
+#'   `"trunc_exp"` refit, a row already using that family also supplies the
+#'   starting values `alpha`, `ll`, `ul`, `lr`, and `ur`; other families do not
+#'   use values from `fits` as starting values.
+#'
+#' @details
+#' For each species, the function first validates the input, applies
+#' `min_w_pred`, uses the validated `log_ppmr` column as the response, and sets
+#' the frequency weight to
+#' \eqn{n_{prey}w_{prey}^{q}}. Multiplying every weight by the same positive
+#' constant does not change any of the fits.
+#'
+#' The fitting method depends on `distribution`:
+#'
+#' * `"normal"` uses the weighted mean and the maximum-likelihood weighted
+#'   standard deviation (the variance divisor is the sum of the weights, with
+#'   no small-sample correction); see [fit_normal()].
+#' * `"trunc_exp"` minimizes the weighted negative log-likelihood with
+#'   [bbmle::mle2()]. The density is an exponential curve with smooth logistic
+#'   cutoffs at both ends; see [fit_truncated_exponential()] and [dtexp()].
+#' * `"gauss_mix"` uses [fit_gaussian_mixture()] with two normal components,
+#'   equal initial mixing proportions, and at most 100 EM iterations.
+#'
+#' Fits are made independently by species; there is no pooling of parameters.
+#' The returned `power` records which weighted distribution was fitted. Use
+#' [transform_fit()] to express the fitted family at another prey-mass
+#' weighting without refitting the observations.
+#'
+#' @return A data frame with one row per species and row names equal to
+#'   `species`. Every row contains `species`, `distribution`, `power`, and
+#'   `min_w_pred`, plus family-specific parameters: `mean` and `sd` for a
+#'   normal fit; `alpha`, `ll`, `ul`, `lr`, and `ur` for a truncated
+#'   exponential fit; or list-columns `p`, `mean`, and `sd` for a Gaussian
+#'   mixture. See [validate_fit()].
+#'
+#' @seealso [plot_log_ppmr_fit()] to compare a fit with the observations,
+#'   [transform_fit()] to change its weighting, and [set_kernel_params()] to
+#'   transfer supported fits to a mizer model.
 #' @examples
 #' # Fit a normal distribution to one species
 #' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
@@ -99,23 +140,45 @@ fit_log_ppmr <-
     return(result)
   }
 
-#' Extract fit parameters from mizer model
+#' Extract feeding-kernel parameters from a mizer model
 #'
-#' Extracts distribution parameters from a mizer params object
-#' and returns a `fits` data frame compatible with [fit_log_ppmr()].
+#' Converts each species' feeding-kernel parameters in a mizer model to a fit
+#' data frame compatible with the other mizerStomach functions.
 #'
-#' The `pred_kernel_type` column is mapped as: `"lognormal"` → `"normal"`,
-#' `"power_law"` → `"trunc_exp"`. Gaussian mixture distribution is not yet
-#' supported
+#' @param params A `MizerParams` object.
+#' @param species_dict An optional named list or named character vector. Names
+#'   are species names in `params` and values are their names in the returned
+#'   fit data frame. Species not present among the names are left unchanged.
 #'
-#' @param params A MizerParams object
-#' @param species_dict A named list (or named character vector) mapping species
-#'   names in `params@species_params$species` to the names they should have in
-#'   the returned fit data frame. Only species listed as names in
-#'   `species_dict` are renamed; others keep their original names.
-#' @return A fit data frame with `power = 2/3` and distribution parameters
-#'   populated from `species_params`. Only the parameters relevant to each
-#'   species' distribution are filled; others are `NA`.
+#' @details
+#' A mizer kernel is expressed at the prey-mass weighting exponent
+#' \eqn{q_m = \lambda - 4/3}, where `lambda` is read from
+#' `params@resource_params$lambda`. This function first reads the parameters at
+#' \eqn{q_m} and then calls [transform_fit()] to return number-weighted fits
+#' (`power = 0`). This makes `extract_fit()` the inverse of
+#' [set_kernel_params()], apart from ordinary floating-point error.
+#'
+#' Kernel types are mapped as follows:
+#'
+#' * `pred_kernel_type = "lognormal"` becomes `distribution = "normal"`; its
+#'   parameters are read from `beta` and `sigma`.
+#' * `pred_kernel_type = "power_law"` becomes
+#'   `distribution = "trunc_exp"`; its parameters are read from `kernel_exp`,
+#'   `kernel_l_l`, `kernel_u_l`, `kernel_l_r`, and `kernel_u_r`.
+#'
+#' Other kernel types, including a Gaussian mixture, are not supported and
+#' cause an error.
+#'
+#' @return A validated fit data frame with one row per model species,
+#'   `power = 0`, `min_w_pred = 0`, and the family-specific parameters populated
+#'   from `params`. Parameter columns that do not apply to a row contain `NA`.
+#'
+#' @examples
+#' fits <- extract_fit(mizer::NS_params)
+#' fits[c("Cod", "Herring"), c("species", "distribution", "mean", "sd")]
+#'
+#' @seealso [set_kernel_params()] for the reverse conversion and
+#'   [transform_fit()] for the weighting transformation.
 #' @export
 extract_fit <- function(params, species_dict = NULL) {
   species_params <- params@species_params
@@ -154,23 +217,44 @@ extract_fit <- function(params, species_dict = NULL) {
   return(fit)
 }
 
-#' Set kernel parameters in a mizer model from a fit data frame
+#' Set mizer feeding-kernel parameters from fitted stomach distributions
 #'
-#' Sets the predation kernel parameters in a MizerParams object from a `fits`
-#' data frame as returned by [fit_log_ppmr()]. This is the inverse of
-#' [extract_fit()].
+#' Transforms fitted log-PPMR distributions to the weighting required by a
+#' mizer model and writes the resulting parameters to the corresponding model
+#' species.
 #'
-#' The `distribution` column is mapped as: `"normal"` → `pred_kernel_type =
-#' "lognormal"` (sets `beta = exp(mean)`, `sigma = sd`), `"trunc_exp"` →
-#' `pred_kernel_type = "power_law"` (sets `kernel_exp`, `kernel_l_l`,
-#' `kernel_u_l`, `kernel_l_r`, `kernel_u_r`). Gaussian mixture distribution is
-#' not supported.
+#' @param params A `MizerParams` object.
+#' @param fit A fit data frame accepted by [validate_fit()], usually returned
+#'   by [fit_log_ppmr()] or [extract_fit()]. It may contain any subset of model
+#'   species, but every name in `fit$species` must occur in
+#'   `params@species_params$species`.
 #'
-#' @param params A MizerParams object
-#' @param fit A fit data frame (as returned by [fit_log_ppmr()] or
-#'   [extract_fit()]). May contain one or more species. All species in `fit`
-#'   must be present in `params`.
-#' @return The updated MizerParams object.
+#' @details
+#' Let \eqn{\lambda} be `params@resource_params$lambda`. Before setting model
+#' parameters, each fit is transformed from its recorded `power` to
+#' \eqn{\lambda - 4/3} with [transform_fit()]. This is the exponential tilt
+#' that relates the distribution of prey in stomachs to mizer's feeding kernel
+#' under the package's resource-spectrum and digestion assumptions.
+#'
+#' A normal fit selects mizer's `"lognormal"` kernel and sets
+#' `beta = exp(mean)` and `sigma = sd`. A truncated-exponential fit selects the
+#' `"power_law"` kernel and sets the five `kernel_*` parameters. Gaussian
+#' mixtures cannot currently be represented by mizer kernel parameters and
+#' cause an error.
+#'
+#' Only species occurring in `fit` are changed. The input object is not
+#' modified in place; the updated object must be assigned from the return
+#' value.
+#'
+#' @return The updated `MizerParams` object.
+#'
+#' @examples
+#' params <- mizer::NS_params
+#' cod_fit <- extract_fit(params)["Cod", , drop = FALSE]
+#' cod_fit$mean <- cod_fit$mean + 0.1
+#' params <- set_kernel_params(params, cod_fit)
+#'
+#' @seealso [extract_fit()] for the reverse conversion.
 #' @export
 set_kernel_params <- function(params, fit) {
   fit <- validate_fit(fit)
@@ -221,9 +305,23 @@ set_kernel_params <- function(params, fit) {
 
 #' Fit a normal distribution to weighted observations
 #'
-#' @param value A numeric vector of observed values
-#' @param weight A numeric vector of weights
-#' @return A list with the fitted parameters `mean` and `sd`
+#' Estimates the parameters of a normal distribution by weighted maximum
+#' likelihood.
+#'
+#' @param value Numeric vector containing at least ten observations.
+#' @param weight Numeric vector, of the same length as `value`, containing
+#'   non-negative frequency weights.
+#'
+#' @details
+#' The fitted mean is `weighted.mean(value, weight)`. The fitted standard
+#' deviation is
+#' \deqn{\sqrt{\frac{\sum_i w_i(x_i-\bar{x}_w)^2}{\sum_i w_i}}.}
+#' This is the maximum-likelihood rather than the unbiased estimate: there is no
+#' finite-sample correction. Consequently, the result is invariant to a common
+#' positive rescaling of all weights. Inputs are checked by the internal
+#' weighted-observation validator.
+#'
+#' @return A list with numeric elements `mean` and `sd`.
 #' @examples
 #' cod_data <- validate_ppmr_data(barnes_data, species = "Atlantic cod")
 #' fit_normal(cod_data$log_ppmr, cod_data$n_prey)
@@ -242,12 +340,34 @@ weighted.sd <- function(x, w) {
 
 #' Fit a truncated exponential distribution to weighted observations
 #'
-#' @param value A numeric vector of observed values
-#' @param weight A numeric vector of weights
-#' @param start An optional named list of starting values for `mle2()` with
-#'   elements `alpha`, `ll`, `ul`, `lr`, `ur`. If `NULL`, defaults are derived
-#'   from the data.
-#' @return A list with the fitted parameters `alpha`, `ll`, `ul`, `lr`, `ur`
+#' Estimates a smoothly truncated exponential density by weighted maximum
+#' likelihood.
+#'
+#' @param value Numeric vector containing at least ten observations. Values are
+#'   normally log predator/prey mass ratios.
+#' @param weight Numeric vector, of the same length as `value`, containing
+#'   non-negative frequency weights.
+#' @param start An optional named list with numeric elements `alpha`, `ll`,
+#'   `ul`, `lr`, and `ur`, passed to [bbmle::mle2()] as starting values. See
+#'   [dtexp()] for the parameterization.
+#'
+#' @details
+#' The objective minimized by [bbmle::mle2()] is the weighted negative
+#' log-likelihood
+#' \deqn{-\sum_i w_i \log f(x_i; \alpha,l_l,u_l,l_r,u_r),}
+#' where `f` is [dtexp()]. Weights therefore act as observation frequencies and
+#' need not be integers.
+#'
+#' If `start` is `NULL`, the initial values are `alpha = 0.5`, `ll` equal to
+#' `max(0.1, min(value))`, `lr = max(value)`, and `ul = ur = 20`. Optimizer
+#' evaluations that violate `ll >= 0.9 * min(value)`, `lr >= ll`,
+#' `alpha + ul >= 1.01`, or `ur - alpha >= 0.01`, or that yield an invalid
+#' density, receive a large objective penalty. The optimizer is allowed up to
+#' 10,000 iterations. Because this is a nonlinear five-parameter optimization,
+#' convergence can depend on the starting values; [fit_log_ppmr()] can reuse a
+#' previous truncated-exponential fit as `start`.
+#'
+#' @return A list with numeric elements `alpha`, `ll`, `ul`, `lr`, and `ur`.
 #' @examples
 #' \donttest{
 #' cod_data <- validate_ppmr_data(barnes_data, species = "Atlantic cod")
@@ -284,10 +404,41 @@ fit_truncated_exponential <- function(value, weight, start = NULL) {
 
 #' Fit a Gaussian mixture distribution to weighted observations
 #'
-#' @param value A numeric vector of observed values
-#' @param weight A numeric vector of weights
-#' @return A list with the fitted parameters `mean`, `sd` and `p`, each of which
-#'   is a vector with one entry for each component of the mixture
+#' Fits a finite mixture of normal densities using weighted expectation-
+#' maximization (EM) updates.
+#'
+#' @param value Numeric vector containing at least ten observations.
+#' @param weight Numeric vector, of the same length as `value`, containing
+#'   non-negative frequency weights.
+#' @param k Positive integer giving the number of mixture components.
+#' @param max_iter Positive integer giving the maximum number of EM iterations.
+#' @param tol Non-negative numeric convergence tolerance for the absolute change
+#'   in the stored iteration criterion.
+#'
+#' @details
+#' Mixing proportions are initialized to `1 / k`, component means are equally
+#' spaced from `min(value)` to `max(value)`, and all component standard
+#' deviations are initialized to the unweighted [stats::sd()] of `value`.
+#'
+#' In each E-step, posterior component responsibilities are computed from the
+#' current normal densities. In the M-step, `weight * responsibility` is used
+#' to update each component's mixing proportion, mean, and maximum-likelihood
+#' standard deviation. Iteration stops when the absolute change in the stored
+#' criterion is below `tol` or after `max_iter` iterations.
+#'
+#' The current implementation computes that criterion from the row sums of the
+#' already normalized responsibility matrix. For ordinary finite inputs those
+#' row sums are one, so the criterion is zero and the routine stops after its
+#' second EM update (or after one update if `max_iter = 1`). `tol` therefore
+#' does not currently provide a meaningful likelihood-convergence check.
+#'
+#' Mixture likelihoods can have local optima and degenerate solutions. This
+#' routine makes one deterministic initialization and does not impose a lower
+#' bound on component standard deviations, so the result should be checked
+#' visually with [plot_log_ppmr_fit()].
+#'
+#' @return A list with numeric vectors `p`, `mean`, and `sd`, each of length
+#'   `k`. `p` contains the mixing proportions and sums to one.
 #' @examples
 #' cod_data <- validate_ppmr_data(barnes_data, species = "Atlantic cod")
 #' fit_gaussian_mixture(cod_data$log_ppmr, cod_data$n_prey)

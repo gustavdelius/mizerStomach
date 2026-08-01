@@ -1,8 +1,28 @@
 #' mizerStomach: Using stomach content data in mizer
 #'
-#' This package provides functions to fit distributions to stomach content data
-#' and use these distributions to choose parameters for the predation kernel in
-#' a mizer model.
+#' Fits distributions to predator/prey body-mass ratios observed in stomach
+#' contents and converts supported distributions to feeding-kernel parameters
+#' for mizer size-spectrum models.
+#'
+#' @details
+#' The package works with
+#' \eqn{l=\log(w_{pred}/w_{prey})}. A typical workflow is to:
+#'
+#' 1. standardize observations with [validate_ppmr_data()];
+#' 2. inspect their dependence on predator size with [plot_ppmr_violins()];
+#' 3. fit normal, smoothly truncated-exponential, or Gaussian-mixture densities
+#'    with [fit_log_ppmr()];
+#' 4. diagnose number- and biomass-weighted fits with
+#'    [plot_log_ppmr_fit()]; and
+#' 5. transfer a supported normal or truncated-exponential fit to a mizer model
+#'    with [set_kernel_params()].
+#'
+#' Fit objects retain the exponent of prey mass used as an observation weight.
+#' [transform_fit()] uses family-specific parameter updates to express a fit at
+#' another weighting without fitting the raw observations again.
+#'
+#' See `vignette("mizerStomach", package = "mizerStomach")` for a complete
+#' introduction.
 #'
 #' @import mizer mizerExperimental dplyr ggplot2
 #' @importFrom stats weighted.mean dnorm integrate rnorm sd setNames

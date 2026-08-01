@@ -1,9 +1,25 @@
-#' Get density from a fit object
+#' Evaluate fitted log-PPMR densities
 #'
-#' @param x A numeric vector of values at which to evaluate the density
-#' @param fit A fit data frame (one or more rows)
-#' @return If `fit` has a single row, a numeric vector of densities. If `fit`
-#'   has multiple rows, a matrix with one column per species.
+#' Evaluates one or more fitted probability densities on the log
+#' predator/prey mass-ratio scale.
+#'
+#' @param x Numeric vector of log-PPMR values at which to evaluate the density.
+#' @param fit A one- or multi-row fit data frame accepted by [validate_fit()].
+#'
+#' @details
+#' A `"normal"` row is evaluated with [stats::dnorm()], a `"trunc_exp"` row
+#' with [dtexp()], and a `"gauss_mix"` row as the weighted sum
+#' \eqn{\sum_j p_j\,\mathrm{dnorm}(x;\mu_j,\sigma_j)}. The `power` column is
+#' metadata describing the weighting represented by the fit; this function
+#' does not transform it. Call [transform_fit()] first when a density at
+#' another prey-mass weighting is required.
+#'
+#' @return If `fit` has one row, a numeric vector with the same length as `x`.
+#'   If it has multiple rows, a numeric matrix with `length(x)` rows and one
+#'   column per fit row, named with `fit$species`.
+#'
+#' @seealso [fit_log_ppmr()] to create fits and [plot_log_ppmr_fit()] to compare
+#'   fitted and empirical densities.
 #' @examples
 #' # Fit a normal distribution and evaluate its density
 #' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
@@ -30,10 +46,14 @@ get_density <- function(x, fit) {
     return(result)
 }
 
-#' Get density for a single species from a fit list
-#' @param x A numeric vector of values
-#' @param fit A named list with fitted parameters for one species
-#' @return A numeric vector of densities
+#' Evaluate one fitted density
+#'
+#' Internal dispatcher used by [get_density()].
+#'
+#' @param x Numeric vector of log-PPMR values.
+#' @param fit Named list containing `distribution` and the parameters required
+#'   by that family for one species.
+#' @return A numeric vector with the same length as `x`.
 #' @keywords internal
 get_density_single <- function(x, fit) {
     if (fit$distribution == "normal") {
@@ -53,15 +73,42 @@ get_density_single <- function(x, fit) {
     return(d)
 }
 
-#' Density function of truncated exponential distribution
+#' Smoothly truncated exponential density
 #'
-#' @param x A numeric vector of values
-#' @param alpha exponent
-#' @param ll location of lower sigmoid
-#' @param ul steepness of lower sigmoid
-#' @param lr location of upper sigmoid
-#' @param ur steepness of upper sigmoid
-#' @return A numeric vector of densities
+#' Evaluates the exponentially sloped density with smooth logistic cutoffs used
+#' for truncated-power-law feeding kernels.
+#'
+#' @param x Numeric vector, normally containing log predator/prey mass ratios.
+#' @param alpha Numeric exponential slope between the cutoffs. Positive values
+#'   favor larger `x`; negative values favor smaller `x`.
+#' @param ll Numeric location of the lower (left) logistic cutoff.
+#' @param ul Numeric steepness of the lower cutoff. Larger positive values make
+#'   the transition sharper.
+#' @param lr Numeric location of the upper (right) logistic cutoff.
+#' @param ur Numeric steepness of the upper cutoff. Larger positive values make
+#'   the transition sharper.
+#'
+#' @details
+#' Before normalization, the density is proportional to
+#' \deqn{\frac{\exp(\alpha x)}
+#' {(1+\exp(u_l(l_l-x)))(1+\exp(u_r(x-l_r)))}}.
+#' The implementation evaluates an algebraically equivalent expression in log
+#' space, centered at `(ll + lr) / 2`, to reduce overflow during optimization.
+#' The normalizing constant is obtained by numerical integration over
+#' \eqn{0 \le x \le 30}, the intended log-PPMR range. The function can evaluate
+#' `x` outside that range, but it remains normalized only with respect to the
+#' interval `[0, 30]`.
+#'
+#' If numerical integration fails, or any requested density is non-finite or
+#' non-positive, the function returns `NA` for every element of `x`.
+#' This all-or-nothing behavior lets [fit_truncated_exponential()] reject
+#' unstable parameter combinations during optimization.
+#'
+#' @return A density vector with the same length as `x`, or an all-`NA` vector
+#'   when the density cannot be evaluated reliably.
+#'
+#' @seealso [fit_truncated_exponential()] for weighted maximum-likelihood
+#'   estimation and [transform_truncated_exp()] for changing its weighting.
 #' @examples
 #' # Evaluate the truncated exponential density
 #' x <- seq(0, 15, length.out = 100)

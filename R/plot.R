@@ -1,12 +1,38 @@
-#' Plot log ppmr observations and fitted distribution
+#' Compare observed and fitted log-PPMR distributions
 #'
-#' Plots the fitted distribution on top of the log ppmr observations, both
-#' for the number distribution and the biomass distribution.
+#' Overlays a fitted distribution on empirical prey-number and prey-biomass
+#' distributions for one or more predator species.
 #'
-#' @param ppmr_data A data frame with log ppmr observations
-#' @param fit A fit data frame (one or more rows)
-#' @param type Either `"kernel"` (default) for kernel density estimates or
-#'   `"histogram"` for binned histogram bars.
+#' @param ppmr_data A data frame accepted by [validate_ppmr_data()].
+#' @param fit A one- or multi-row fit data frame accepted by [validate_fit()].
+#'   Only species in this object are plotted. Each row's `min_w_pred` determines
+#'   which observations are included.
+#' @param type For a single fit row, either `"kernel"` (the default) for kernel
+#'   density estimates or `"histogram"` for normalized histogram bars. A
+#'   multi-species plot currently always uses faceted kernel densities.
+#'
+#' @details
+#' The observed number distribution weights rows by `n_prey`; the observed
+#' biomass distribution weights them by `n_prey * w_prey`. For every fit row,
+#' [transform_fit()] is used to obtain fitted curves at `power = 0` (number) and
+#' `power = 1` (biomass), whatever weighting was originally used for fitting.
+#'
+#' For `type = "kernel"`, [ggplot2::geom_density()] chooses the smoothing
+#' bandwidth. For a one-species histogram, observations are placed in 30
+#' equally spaced log-PPMR bins and each set of bars is divided by its total
+#' weight and bin width, so its area is one. The curve grid for kernel plots is
+#' based on the 0.1% biomass-weighted and 99.9% number-weighted quantiles, with
+#' padding. Multi-species results use one facet per predator species with free
+#' scales.
+#'
+#' These plots are diagnostics rather than goodness-of-fit tests. In
+#' particular, the empirical kernel density depends on its automatically chosen
+#' bandwidth.
+#'
+#' @return A [ggplot2::ggplot()] object.
+#'
+#' @seealso [fit_log_ppmr()] to estimate the fit and [get_density()] to obtain
+#'   the curve values directly.
 #' @examples
 #' # Plot a normal fit for one species
 #' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
@@ -154,11 +180,35 @@ plot_log_ppmr_fit <- function(ppmr_data, fit, type = c("kernel", "histogram")) {
 }
 
 
-#' Violin plots of predator/prey mass ratios for different predator weights
+#' Plot log-PPMR distributions across predator-size classes
 #'
-#' @param ppmr_data A data frame with log ppmr observations
-#' @param species The species to select
-#' @param power The power to raise the weights to
+#' Uses violin plots to inspect whether the log predator/prey mass-ratio
+#' distribution changes with predator size.
+#'
+#' @param ppmr_data A data frame accepted by [validate_ppmr_data()].
+#' @param species Single character string naming the predator species to plot.
+#' @param power Numeric prey-mass weighting exponent. Each observation receives
+#'   weight `n_prey * w_prey^power`; zero gives a number distribution and one a
+#'   biomass distribution.
+#'
+#' @details
+#' Observations are split into ten predator-mass classes with approximately
+#' equal numbers of data-frame rows using [ggplot2::cut_number()]. Predator
+#' masses are multiplied by tiny random perturbations before binning so that
+#' repeated, rounded masses do not prevent the quantile cut. Consequently, bin
+#' boundaries can vary slightly between calls; use [base::set.seed()] before
+#' the function when exact reproducibility is important.
+#'
+#' Within each class, [ggplot2::geom_violin()] estimates the weighted log-PPMR
+#' density and marks its median. The bins balance rows, not `n_prey` or the
+#' derived weights, so strongly aggregated data can still have uneven effective
+#' sample sizes across classes.
+#'
+#' @return A [ggplot2::ggplot()] object.
+#'
+#' @seealso [plot_log_ppmr_fit()] for fitted marginal distributions and
+#'   [fit_log_ppmr()] for fitting after the predator-size assumption has been
+#'   assessed.
 #' @examples
 #' # Biomass-weighted violin plot
 #' plot_ppmr_violins(barnes_data, "Albacore")

@@ -1,19 +1,47 @@
 #' Interactively tune PPMR distribution fits
 #'
-#' A Shiny gadget for visually tuning distribution parameters for each predator
-#' species. Supports "normal", "trunc_exp", and "gauss_mix" (two components)
-#' distributions, selectable via a radio button in the sidebar. Returns the
-#' updated fits data frame when the "Return" button is clicked.
+#' Opens a Shiny gadget for fitting, comparing, and manually adjusting one
+#' log-PPMR distribution per predator species.
 #'
 #' @param ppmr_data A data frame with log ppmr observations. See
 #'   [validate_ppmr_data()] for details.
-#' @param fits A fit data frame (as returned by [fit_log_ppmr()]). If not
-#'   provided, a default fit is constructed from the `predators` argument.
-#' @param predators A character vector of species names to include. Only used
-#'   when `fits` is not supplied. Defaults to all unique species in
-#'   `ppmr_data`.
-#' @return The updated fit data frame, invisibly, when the gadget is closed via
-#'   the "Return" button.
+#' @param fits Optional fit data frame accepted by [validate_fit()]. Its rows
+#'   determine the species shown and provide their initial distribution and
+#'   parameters. If omitted, the gadget starts each selected species with a
+#'   default truncated-exponential fit.
+#' @param predators Optional character vector of species to include when `fits`
+#'   is omitted. Defaults to all species in `ppmr_data` and is otherwise ignored.
+#'
+#' @details
+#' The sidebar switches among species and the `"normal"`, `"trunc_exp"`, and
+#' two-component `"gauss_mix"` families. Parameter sliders immediately update
+#' the diagnostic produced by [plot_log_ppmr_fit()]. On first switching to a
+#' family not yet cached for that species, the gadget attempts a fit with
+#' [fit_log_ppmr()]; the **Fit** button repeats that fit. For a truncated
+#' exponential, the currently displayed parameters are reused as optimizer
+#' starting values.
+#'
+#' **Undo** restores the preceding cached state and **Reset** restores all
+#' input fits. **Download** saves the currently selected fit for every species
+#' as `fits.rds`. **Return** closes the gadget and returns the same collection
+#' to the calling R session. Fits for families visited but not currently
+#' selected are cached only for the duration of the gadget.
+#'
+#' The gadget uses an external browser viewer and blocks the calling R session
+#' until it is closed. It is intended for interactive use, not scripts or
+#' non-interactive package builds.
+#'
+#' @return A fit data frame with one row per selected predator when **Return**
+#'   is clicked.
+#'
+#' @examples
+#' \dontrun{
+#' initial <- fit_log_ppmr(barnes_data, "Atlantic cod", "normal")
+#' tuned <- fit_shiny(barnes_data, fits = initial)
+#' }
+#'
+#' @seealso [fit_log_ppmr()] for non-interactive fitting and
+#'   [plot_log_ppmr_fit()] for the diagnostic shown by the gadget.
 #' @export
 fit_shiny <- function(ppmr_data,
                       fits = NULL,
