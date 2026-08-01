@@ -26,7 +26,7 @@ Remotes:
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.1.7)
 Collate:
     'mizerStomach-package.R'
     'data.R'

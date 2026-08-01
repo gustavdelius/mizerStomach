@@ -191,7 +191,7 @@ validate_ppmr_data <- function(ppmr_data, species = NULL) {
         }
         ppmr_data <- ppmr_data[ppmr_data$species == species, ]
     }
-    if (any(ppmr_data$w_prey > ppmr_data$w_pred)) {
+    if (any(ppmr_data$w_prey > ppmr_data$w_pred, na.rm = TRUE)) {
         warning("Some prey are heavier than the predator")
     }
 

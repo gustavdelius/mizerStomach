@@ -16,6 +16,19 @@ test_that("fit_normal returns list with mean and sd", {
                  weighted.mean(sp_data$log_ppmr, sp_data$n_prey))
 })
 
+test_that("fit_normal uses maximum-likelihood frequency weighting", {
+    value <- seq(1, 10)
+    weight <- seq(1, 10)
+    expected_mean <- sum(value * weight) / sum(weight)
+    expected_sd <- sqrt(sum(weight * (value - expected_mean)^2) / sum(weight))
+
+    fit <- fit_normal(value, weight)
+    scaled_fit <- fit_normal(value, 7 * weight)
+
+    expect_equal(fit, list(mean = expected_mean, sd = expected_sd))
+    expect_equal(scaled_fit, fit)
+})
+
 test_that("fit_gaussian_mixture returns correct structure", {
     result <- fit_gaussian_mixture(sp_data$log_ppmr, sp_data$n_prey, k = 2)
     expect_type(result, "list")
@@ -36,6 +49,16 @@ test_that("fit_gaussian_mixture iterates beyond the first EM update", {
 
     expect_false(isTRUE(all.equal(one_update$mean, converged$mean)))
     expect_equal(sum(converged$p), 1, tolerance = 1e-10)
+})
+
+test_that("fit_gaussian_mixture supports a documented component count", {
+    value <- seq(-3, 6, length.out = 30)
+    fit <- fit_gaussian_mixture(value, rep(1, 30), k = 3, max_iter = 5)
+
+    expect_length(fit$p, 3)
+    expect_length(fit$mean, 3)
+    expect_length(fit$sd, 3)
+    expect_equal(sum(fit$p), 1, tolerance = 1e-10)
 })
 
 test_that("fit_truncated_exponential returns correct structure", {
@@ -104,6 +127,44 @@ test_that("fit_log_ppmr respects power argument", {
     expect_true(is.numeric(result$mean))
 })
 
+test_that("fit_log_ppmr implements documented row and prey-mass weights", {
+    value <- seq(1, 2.9, length.out = 20)
+    prey_mass <- seq(1, 4, length.out = 20)
+    data <- data.frame(
+        species = "A",
+        w_pred = prey_mass * exp(value),
+        w_prey = prey_mass,
+        n_prey = rep(1:4, length.out = 20)
+    )
+    expected_weight <- data$n_prey * data$w_prey^0.5
+    expected <- fit_normal(value, expected_weight)
+
+    result <- fit_log_ppmr(data, "A", distribution = "normal", power = 0.5)
+
+    expect_equal(result$mean, expected$mean)
+    expect_equal(result$sd, expected$sd)
+    expect_equal(result$power, 0.5)
+})
+
+test_that("fit_log_ppmr applies min_w_pred before fitting", {
+    value <- seq(1, 3.9, length.out = 30)
+    data <- data.frame(
+        species = "A", w_pred = exp(value), w_prey = 1,
+        n_prey = seq_len(30)
+    )
+    cutoff <- data$w_pred[11]
+    keep <- data$w_pred >= cutoff
+    expected <- fit_normal(value[keep], data$n_prey[keep])
+
+    result <- fit_log_ppmr(
+        data, "A", distribution = "normal", min_w_pred = cutoff
+    )
+
+    expect_equal(result$mean, expected$mean)
+    expect_equal(result$sd, expected$sd)
+    expect_equal(result$min_w_pred, cutoff)
+})
+
 test_that("fit_log_ppmr uses species from fits argument", {
     species_vec <- unique(barnes_data$species)[1:2]
     prior_fit <- fit_log_ppmr(barnes_data, species_vec, distribution = "normal")
@@ -133,6 +194,20 @@ test_that("fit_truncated_exponential accepts custom start values", {
     expect_true(all(c("alpha", "ll", "ul", "lr", "ur") %in% names(result)))
     # Fitting from a good starting point should converge to the same solution
     expect_equal(result$alpha, default_fit$alpha, tolerance = 1e-4)
+})
+
+test_that("fit_truncated_exponential penalizes invalid density evaluations", {
+    value <- seq(1, 2, length.out = 10)
+    result <- testthat::with_mocked_bindings(
+        fit_truncated_exponential(value, rep(1, 10)),
+        dtexp = function(x, ...) rep(NA_real_, length(x)),
+        .package = "mizerStomach"
+    )
+
+    expect_equal(
+        result,
+        list(alpha = 0.5, ll = 1, ul = 20, lr = 2, ur = 20)
+    )
 })
 
 test_that("fit_log_ppmr uses fits as start for trunc_exp", {
@@ -180,4 +255,126 @@ test_that("extract_fit species_dict works with named character vector", {
     dict <- setNames(c("vec_renamed"), sp_name)
     result <- extract_fit(params, species_dict = dict)
     expect_equal(result$species[[1]], "vec_renamed")
+})
+
+test_that("extract_fit maps lognormal kernels and their weighting", {
+    params <- mizer::NS_params
+    sp <- params@species_params
+    kernel_power <- params@resource_params$lambda - 4 / 3
+
+    result <- extract_fit(params)
+
+    expect_equal(result$distribution, rep("normal", nrow(sp)))
+    expect_equal(result$power, rep(0, nrow(sp)))
+    expect_equal(result$min_w_pred, rep(0, nrow(sp)))
+    expect_equal(result$mean, unname(log(sp$beta) + kernel_power * sp$sigma^2))
+    expect_equal(result$sd, unname(sp$sigma))
+})
+
+test_that("extract_fit maps power-law kernels", {
+    params <- mizer::NS_params
+    sp <- params@species_params
+    sp$pred_kernel_type[1] <- "power_law"
+    sp$kernel_exp <- 0.2
+    sp$kernel_l_l <- 2
+    sp$kernel_u_l <- 4
+    sp$kernel_l_r <- 12
+    sp$kernel_u_r <- 6
+    params@species_params <- sp
+    kernel_power <- params@resource_params$lambda - 4 / 3
+
+    result <- extract_fit(params)[1, , drop = FALSE]
+
+    expect_equal(result$distribution, "trunc_exp")
+    expect_equal(result$alpha, 0.2 + kernel_power)
+    expect_equal(result[c("ll", "ul", "lr", "ur")],
+                 data.frame(ll = 2, ul = 4, lr = 12, ur = 6),
+                 ignore_attr = TRUE)
+})
+
+test_that("extract_fit rejects unsupported mizer kernels", {
+    params <- mizer::NS_params
+    params@species_params$pred_kernel_type[1] <- "unsupported"
+
+    expect_error(extract_fit(params), "Unknown pred_kernel_type: unsupported")
+})
+
+test_that("set_kernel_params maps a normal fit without modifying its input", {
+    params <- mizer::NS_params
+    original <- params@species_params
+    species <- original$species[1]
+    kernel_power <- params@resource_params$lambda - 4 / 3
+    fit <- data.frame(
+        species = species, distribution = "normal", power = 0,
+        mean = 6, sd = 1.5
+    )
+
+    result <- suppressWarnings(set_kernel_params(params, fit))
+    result_sp <- result@species_params
+    expected_mean <- fit$mean - kernel_power * fit$sd^2
+
+    expect_equal(unname(result_sp$pred_kernel_type[1]), "lognormal")
+    expect_equal(unname(result_sp$beta[1]), exp(expected_mean))
+    expect_equal(unname(result_sp$sigma[1]), fit$sd)
+    expect_identical(params@species_params, original)
+    expect_equal(result_sp$beta[-1], original$beta[-1])
+})
+
+test_that("set_kernel_params maps a truncated-exponential fit", {
+    params <- mizer::NS_params
+    species <- params@species_params$species[1]
+    kernel_power <- params@resource_params$lambda - 4 / 3
+    fit <- data.frame(
+        species = species, distribution = "trunc_exp", power = 0,
+        alpha = 1.1, ll = 2, ul = 4, lr = 12, ur = 6
+    )
+
+    result <- suppressWarnings(set_kernel_params(params, fit))
+    row <- result@species_params[1, ]
+
+    expect_equal(unname(row$pred_kernel_type), "power_law")
+    expect_equal(unname(row$kernel_exp), fit$alpha - kernel_power)
+    expect_equal(
+        unname(unlist(row[c("kernel_l_l", "kernel_u_l", "kernel_l_r", "kernel_u_r")])),
+        c(2, 4, 12, 6)
+    )
+})
+
+test_that("kernel parameter conversions round trip", {
+    params <- mizer::NS_params
+    normal_fit <- extract_fit(params)[1, , drop = FALSE]
+    normal_roundtrip <- extract_fit(
+        suppressWarnings(set_kernel_params(params, normal_fit))
+    )[1, , drop = FALSE]
+
+    expect_equal(normal_roundtrip$mean, normal_fit$mean)
+    expect_equal(normal_roundtrip$sd, normal_fit$sd)
+
+    species <- params@species_params$species[1]
+    trunc_fit <- data.frame(
+        species = species, distribution = "trunc_exp", power = 0,
+        alpha = 1.1, ll = 2, ul = 4, lr = 12, ur = 6
+    )
+    trunc_roundtrip <- extract_fit(
+        suppressWarnings(set_kernel_params(params, trunc_fit))
+    )[1, , drop = FALSE]
+
+    expect_equal(trunc_roundtrip$alpha, trunc_fit$alpha)
+    expect_equal(
+        unname(unlist(trunc_roundtrip[c("ll", "ul", "lr", "ur")])),
+        unname(unlist(trunc_fit[c("ll", "ul", "lr", "ur")]))
+    )
+})
+
+test_that("set_kernel_params rejects unknown species and Gaussian mixtures", {
+    normal <- data.frame(
+        species = "not in model", distribution = "normal", mean = 5, sd = 1
+    )
+    expect_error(set_kernel_params(mizer::NS_params, normal), "not found in params")
+
+    mixture <- data.frame(species = "Cod", distribution = "gauss_mix")
+    mixture$p <- I(list(c(0.5, 0.5)))
+    mixture$mean <- I(list(c(3, 7)))
+    mixture$sd <- I(list(c(1, 2)))
+    expect_error(set_kernel_params(mizer::NS_params, mixture), "not supported")
 })

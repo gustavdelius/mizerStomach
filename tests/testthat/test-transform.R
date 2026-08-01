@@ -95,3 +95,30 @@ test_that("transform_fit works on real fit from barnes_data", {
     # Mean should shift
     expect_true(result$mean != fit$mean)
 })
+
+test_that("transform_fit uses each row's existing power and leaves input unchanged", {
+    fit <- data.frame(
+        species = c("A", "B"), distribution = "normal",
+        mean = c(5, 7), sd = c(1, 2), power = c(0, 0.5)
+    )
+    original <- fit
+
+    result <- transform_fit(fit, power = 1)
+
+    expect_equal(result$mean, c(5 - 1, 7 - 0.5 * 4))
+    expect_equal(result$power, c(1, 1))
+    expect_identical(fit, original)
+})
+
+test_that("low-level transformations preserve documented unchanged parameters", {
+    normal <- list(mean = 5, sd = 2, note = "kept")
+    trunc <- list(alpha = 0.5, ll = 2, ul = 20, lr = 15, ur = 20)
+    mixture <- list(p = c(0.4, 0.6), mean = c(3, 7), sd = c(1, 1.5))
+
+    expect_identical(transform_normal(normal, 0.5)$note, "kept")
+    expect_equal(
+        transform_truncated_exp(trunc, 0.5)[c("ll", "ul", "lr", "ur")],
+        trunc[c("ll", "ul", "lr", "ur")]
+    )
+    expect_equal(transform_gaussian_mixture(mixture, 0.5)$sd, mixture$sd)
+})
