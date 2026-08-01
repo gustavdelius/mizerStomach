@@ -35,8 +35,8 @@ Collate:
     'transform.R'
     'validate.R'
 VignetteBuilder: knitr
-RoxygenNote: 7.3.3
 Roxygen: list(markdown = TRUE)
 Depends: 
     R (>= 3.5)
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
