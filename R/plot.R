@@ -90,7 +90,8 @@ plot_log_ppmr_fit <- function(ppmr_data, fit, type = c("kernel", "histogram")) {
         } else if (fit_row$power == 1) {
             plot_subtitle <- paste(plot_subtitle, "biomass density")
         } else {
-            plot_subtitle <- paste(plot_subtitle, "density with power", fit_row$power)
+            plot_subtitle <- paste(plot_subtitle, "density with power",
+                                   round(fit_row$power, digits = 3))
         }
         plot_subtitle <- paste(plot_subtitle, "with", n_prey, "prey.")
 
