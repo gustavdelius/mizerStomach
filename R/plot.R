@@ -160,9 +160,6 @@ plot_log_ppmr_fit <- function(ppmr_data, fit, type = c("kernel", "histogram")) {
 #' @param species The species to select
 #' @param power The power to raise the weights to
 #' @examples
-#' # Ignore the warnings. They are due to a recent loss of functionality
-#' # in ggplot2 that is hopefully temporary.
-#'
 #' # Biomass-weighted violin plot
 #' plot_ppmr_violins(barnes_data, "Albacore")
 #'
@@ -192,7 +189,8 @@ plot_ppmr_violins <- function(ppmr_data, species, power = 1) {
 
     ggplot(stomach_binned, aes(bin, log_ppmr)) +
         geom_violin(aes(weight = weight),
-                    draw_quantiles = 0.5) +
+                    quantiles = 0.5,
+                    quantile.linetype = 1) +
         xlab("Predator weight [g]") +
         ylab("Log of predator/prey mass ratio") +
         ggtitle(plot_title, subtitle = paste("Total number of prey:", n_prey))

@@ -34,7 +34,10 @@ test_that("plot_log_ppmr_fit works for multi-species fit", {
 })
 
 test_that("plot_ppmr_violins returns a ggplot", {
-    p <- plot_ppmr_violins(barnes_data, test_species)
+    expect_warning(
+        p <- plot_ppmr_violins(barnes_data, test_species),
+        NA
+    )
     expect_s3_class(p, "ggplot")
 })
 
