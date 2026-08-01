@@ -5,6 +5,7 @@ vignette: >
   %\VignetteIndexEntry{From stomach distributions to mizer feeding kernels}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
 ---
 
 ```{r, include = FALSE}
@@ -20,7 +21,7 @@ library(mizerStomach)
 
 A stomach-content distribution is a realized outcome: it depends on predator
 preference, available prey, ingestion, digestion, and sampling. A mizer feeding
-kernel represents only the prey-size dependence of encounter and selection.
+kernel [@scott2014mizer] represents only the prey-size dependence of encounter and selection.
 Connecting the two therefore requires assumptions.
 
 This article derives the transformation used by `set_kernel_params()` and
@@ -37,7 +38,7 @@ The package uses the following approximation:
 2. Stomach contents are in a statistical steady state: prey of each size enter
    stomachs through ingestion at the same average rate at which they cease to
    be identifiable through digestion.
-3. The mass digestion rate scales as prey mass to the power $2/3$.
+3. The mass digestion rate scales as prey mass to the power $2/3$ [@jobling1981mathematical; @bromley1994role; @andersen1999effects].
 4. The prey community experienced by the predator has number density
    proportional to $w^{-\lambda}$.
 5. Other effects on detectability and stomach residence time do not introduce
@@ -259,3 +260,5 @@ Treat the transferred parameters as empirically informed starting values.
 Evaluate them with the other evidence available for the predator and with
 mizer model diagnostics or calibration. Exact parameter mappings and error
 conditions are documented in `?set_kernel_params` and `?extract_fit`.
+
+## References

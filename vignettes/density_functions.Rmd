@@ -5,6 +5,7 @@ vignette: >
   %\VignetteIndexEntry{Weighting and log-PPMR distributions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
 ---
 
 ```{r, include = FALSE}
@@ -112,7 +113,7 @@ The number of prey of mass $w$ observed in stomachs is therefore proportional
 to their ingestion rate times $w^{1/3}$. Diet biomass is ingestion rate times
 $w$, so it is proportional to observed stomach numbers times $w^{2/3}$. This
 motivates `power = 2 / 3`; it is an assumption about digestion, not a
-universal constant.
+universal constant [@jobling1981mathematical; @bromley1994role; @andersen1999effects].
 
 ### Pooling predator sizes
 
@@ -238,3 +239,5 @@ For exact arguments and return structures, see `?fit_log_ppmr`,
 `?transform_fit`, and `?get_density`. For the additional assumptions that
 turn a stomach distribution into a feeding kernel, continue with
 `vignette("feeding_kernels")`.
+
+## References

@@ -5,6 +5,7 @@ vignette: >
   %\VignetteIndexEntry{Getting started}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
 ---
 
 ```{r, include = FALSE}
@@ -18,7 +19,7 @@ knitr::opts_chunk$set(
 ```
 
 `mizerStomach` uses stomach-content observations to estimate how a predator's
-prey are distributed over body size. It works on the log predator/prey mass
+prey are distributed over body size [@hyslop1980stomach; @baker2014fish; @amundsen1996new]. It works on the log predator/prey mass
 ratio
 
 $$
@@ -27,7 +28,7 @@ $$
 
 fits a probability distribution to $\log(\mathrm{PPMR})$, and can translate that distribution
 into feeding-kernel parameters for a [mizer](https://sizespectrum.org/mizer/)
-model.
+model [@scott2014mizer].
 
 This vignette introduces the usual workflow:
 
@@ -49,7 +50,7 @@ library(mizerStomach)
 ```
 
 The package includes `barnes_data`, a set of individual predator/prey body-mass
-observations for 12 predator species.
+observations for 12 predator species [@barnes2010global].
 
 ```{r data}
 head(barnes_data, 4)
@@ -312,3 +313,5 @@ The practical rule is simple: validate the measurements, inspect the
 predator-size dependence, fit at a weighting relevant to the biological
 question, and judge both the number and biomass implications before updating a
 model.
+
+## References

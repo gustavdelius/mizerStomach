@@ -5,6 +5,7 @@ vignette: >
   %\VignetteIndexEntry{Choosing and diagnosing a log-PPMR distribution}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
 ---
 
 ```{r, include = FALSE}
@@ -22,9 +23,9 @@ library(mizerStomach)
 ```
 
 This article develops the diagnostic choices introduced in
-`vignette("mizerStomach")`. It uses only `barnes_data`, which is distributed
+`vignette("mizerStomach")`. It uses only `barnes_data` [@barnes2010global], which is distributed
 with the package, and focuses on questions that should be answered before a fit
-is transferred to a mizer model:
+is transferred to a mizer model [@scott2014mizer]:
 
 1. Is one log predator/prey mass-ratio (log-PPMR) distribution adequate across
    predator sizes?
@@ -271,3 +272,5 @@ After selecting and diagnosing a family, continue with
 mizer feeding-kernel parameters. Exact optimizer behavior and return columns
 are documented in `?fit_log_ppmr`, `?fit_truncated_exponential`, and
 `?plot_log_ppmr_fit`.
+
+## References
