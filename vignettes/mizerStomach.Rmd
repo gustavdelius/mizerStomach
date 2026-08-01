@@ -22,10 +22,10 @@ prey are distributed over body size. It works on the log predator/prey mass
 ratio
 
 $$
-l = \log\left(\frac{w_{pred}}{w_{prey}}\right),
+\log(\mathrm{PPMR}) = \log\left(\frac{w_\text{pred}}{w_\text{prey}}\right).
 $$
 
-fits a probability distribution to $l$, and can translate that distribution
+fits a probability distribution to $\log(\mathrm{PPMR})$, and can translate that distribution
 into feeding-kernel parameters for a [mizer](https://sizespectrum.org/mizer/)
 model.
 

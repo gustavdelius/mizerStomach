@@ -41,7 +41,7 @@ pak::pak("gustavdelius/mizerStomach")
 The package works with the log predator/prey mass ratio
 
 $$
-\log(\mathrm{PPMR}) = \log\left(\frac{w_{pred}}{w_{prey}}\right).
+\log(\mathrm{PPMR}) = \log\left(\frac{w_\text{pred}}{w_\text{prey}}\right).
 $$
 
 The package includes `barnes_data`, with 23,164 predator/prey observations for
@@ -71,8 +71,8 @@ grid <- seq(2, 12, length.out = 100)
 density <- get_density(grid, cod_number_fit)
 ```
 
-Normal, truncated-exponential, and Gaussian-mixture fits can be transferred to
-mizer. Species names must agree between the fit and model:
+Normal and truncated-exponential fits can be transferred to mizer. Species
+names must agree between the fit and model:
 
 ```r
 params <- mizer::NS_params
@@ -116,7 +116,7 @@ cleaning.
 |:--|:--|:--|
 | `"normal"` | Weighted maximum likelihood | Yes, as a lognormal kernel |
 | `"trunc_exp"` | Weighted nonlinear maximum likelihood with smooth cutoffs | Yes, as a power-law kernel |
-| `"gauss_mix"` | Weighted expectation-maximization | Yes, as a Gaussian-mixture kernel |
+| `"gauss_mix"` | Weighted expectation-maximization | Not currently supported |
 
 Observation rows receive weight `n_prey * w_prey^power`. Common choices are
 `power = 0` for prey numbers, `power = 1` for stomach prey biomass, and
