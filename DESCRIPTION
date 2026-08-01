@@ -18,10 +18,11 @@ Imports:
     ggplot2,
     Hmisc,
     later,
-    mizer,
+    mizer (>= 3.2.1.9001),
     mizerExperimental,
     shiny
 Remotes:
+    sizespectrum/mizer,
     sizespectrum/mizerExperimental
 Suggests: 
     knitr,

@@ -168,9 +168,14 @@ fit_log_ppmr <-
 #' * `pred_kernel_type = "power_law"` becomes
 #'   `distribution = "trunc_exp"`; its parameters are read from `kernel_exp`,
 #'   `kernel_l_l`, `kernel_u_l`, `kernel_l_r`, and `kernel_u_r`.
+#' * `pred_kernel_type = "gaussian_mixture"` becomes
+#'   `distribution = "gauss_mix"`; its component vectors are read from the
+#'   list-columns `kernel_p`, `kernel_mean`, and `kernel_sd`.
 #'
-#' Other kernel types, including a Gaussian mixture, are not supported and
-#' cause an error.
+#' Other kernel types cause an error. If the model contains a mixture of kernel
+#' families, `mean`, `sd`, and `p` are returned as list-columns so that
+#' vector-valued Gaussian-mixture parameters and scalar normal parameters can
+#' coexist in the same data frame.
 #'
 #' @return A validated fit data frame with one row per model species,
 #'   `power = 0`, `min_w_pred = 0`, and the family-specific parameters populated
@@ -187,7 +192,8 @@ fit_log_ppmr <-
 #' @export
 extract_fit <- function(params, species_dict = NULL) {
   species_params <- params@species_params
-  dist_map <- c(lognormal = "normal", power_law = "trunc_exp")
+  dist_map <- c(lognormal = "normal", power_law = "trunc_exp",
+                gaussian_mixture = "gauss_mix")
   distribution <- unname(dist_map[species_params$pred_kernel_type])
   if (anyNA(distribution)) {
     unknown <- unique(species_params$pred_kernel_type[is.na(distribution)])
@@ -196,6 +202,7 @@ extract_fit <- function(params, species_dict = NULL) {
 
   is_normal   <- distribution == "normal"
   is_trunc    <- distribution == "trunc_exp"
+  is_mixture  <- distribution == "gauss_mix"
 
   species_names <- species_params$species
   if (!is.null(species_dict)) {
@@ -217,6 +224,20 @@ extract_fit <- function(params, species_dict = NULL) {
     ur           = ifelse(is_trunc,  species_params$kernel_u_r,   NA_real_),
     stringsAsFactors = FALSE
   )
+  if (any(is_mixture)) {
+    fit$mean <- as.list(fit$mean)
+    fit$sd <- as.list(fit$sd)
+    fit$p <- rep(list(NA_real_), nrow(fit))
+    mixture_param <- function(column, i) {
+      value <- species_params[[column]]
+      if (is.list(value)) value[[i]] else value[i]
+    }
+    for (i in which(is_mixture)) {
+      fit$p[[i]] <- mixture_param("kernel_p", i)
+      fit$mean[[i]] <- mixture_param("kernel_mean", i)
+      fit$sd[[i]] <- mixture_param("kernel_sd", i)
+    }
+  }
   rownames(fit) <- fit$species
   fit <- transform_fit(fit, power = 0)
   return(fit)
@@ -243,9 +264,10 @@ extract_fit <- function(params, species_dict = NULL) {
 #'
 #' A normal fit selects mizer's `"lognormal"` kernel and sets
 #' `beta = exp(mean)` and `sigma = sd`. A truncated-exponential fit selects the
-#' `"power_law"` kernel and sets the five `kernel_*` parameters. Gaussian
-#' mixtures cannot currently be represented by mizer kernel parameters and
-#' cause an error.
+#' `"power_law"` kernel and sets the five scalar `kernel_*` parameters. A
+#' Gaussian-mixture fit selects the `"gaussian_mixture"` kernel and stores its
+#' component vectors in the list-columns `kernel_p`, `kernel_mean`, and
+#' `kernel_sd`.
 #'
 #' Only species occurring in `fit` are changed. The input object is not
 #' modified in place; the updated object must be assigned from the return
@@ -276,33 +298,48 @@ set_kernel_params <- function(params, fit) {
   mizer_power <- params@resource_params$lambda - 4/3
   fit <- transform_fit(fit, power = mizer_power)
 
-  dist_map <- c(normal = "lognormal", trunc_exp = "power_law")
+  dist_map <- c(normal = "lognormal", trunc_exp = "power_law",
+                gauss_mix = "gaussian_mixture")
+
+  if (any(fit$distribution == "gauss_mix")) {
+    for (column in c("kernel_p", "kernel_mean", "kernel_sd")) {
+      if (!hasName(sp, column)) {
+        sp[[column]] <- rep(list(NA_real_), nrow(sp))
+      } else if (!is.list(sp[[column]])) {
+        sp[[column]] <- as.list(sp[[column]])
+      }
+    }
+  }
 
   for (i in seq_len(nrow(fit))) {
-    row <- fit[i, ]
-    s <- row$species
-    dist <- row$distribution
-
-    if (dist == "gauss_mix") {
-      stop("gauss_mix distribution is not supported by mizer kernel parameters")
+    s <- fit$species[i]
+    dist <- fit$distribution[i]
+    sp_idx <- which(sp$species == s)
+    fit_param <- function(column) {
+      value <- fit[[column]]
+      if (is.list(value)) value[[i]] else value[i]
     }
 
-    sp[sp$species == s, "pred_kernel_type"] <- dist_map[[dist]]
+    sp$pred_kernel_type[sp_idx] <- dist_map[[dist]]
 
     if (dist == "normal") {
-      sp[sp$species == s, "beta"]  <- exp(row$mean)
-      sp[sp$species == s, "sigma"] <- row$sd
+      sp$beta[sp_idx] <- exp(fit_param("mean"))
+      sp$sigma[sp_idx] <- fit_param("sd")
     } else if (dist == "trunc_exp") {
       if (!hasName(sp, "kernel_exp")) sp$kernel_exp <- NA_real_
       if (!hasName(sp, "kernel_l_l")) sp$kernel_l_l <- NA_real_
       if (!hasName(sp, "kernel_u_l")) sp$kernel_u_l <- NA_real_
       if (!hasName(sp, "kernel_l_r")) sp$kernel_l_r <- NA_real_
       if (!hasName(sp, "kernel_u_r")) sp$kernel_u_r <- NA_real_
-      sp[sp$species == s, "kernel_exp"] <- row$alpha
-      sp[sp$species == s, "kernel_l_l"] <- row$ll
-      sp[sp$species == s, "kernel_u_l"] <- row$ul
-      sp[sp$species == s, "kernel_l_r"] <- row$lr
-      sp[sp$species == s, "kernel_u_r"] <- row$ur
+      sp$kernel_exp[sp_idx] <- fit_param("alpha")
+      sp$kernel_l_l[sp_idx] <- fit_param("ll")
+      sp$kernel_u_l[sp_idx] <- fit_param("ul")
+      sp$kernel_l_r[sp_idx] <- fit_param("lr")
+      sp$kernel_u_r[sp_idx] <- fit_param("ur")
+    } else if (dist == "gauss_mix") {
+      sp$kernel_p[[sp_idx]] <- fit_param("p")
+      sp$kernel_mean[[sp_idx]] <- fit_param("mean")
+      sp$kernel_sd[[sp_idx]] <- fit_param("sd")
     }
   }
 

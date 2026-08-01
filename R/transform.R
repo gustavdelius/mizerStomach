@@ -60,7 +60,14 @@ transform_fit <- function(fit, power) {
         dp <- power - fit$power[i]
         dist <- fit$distribution[i]
         if (dist == "normal") {
-            fit$mean[i] <- fit$mean[i] - dp * fit$sd[i]^2
+            means <- if (is.list(fit$mean)) fit$mean[[i]] else fit$mean[i]
+            sds <- if (is.list(fit$sd)) fit$sd[[i]] else fit$sd[i]
+            means <- means - dp * sds^2
+            if (is.list(fit$mean)) {
+                fit$mean[[i]] <- means
+            } else {
+                fit$mean[i] <- means
+            }
         } else if (dist == "trunc_exp") {
             fit$alpha[i] <- fit$alpha[i] - dp
         } else if (dist == "gauss_mix") {
