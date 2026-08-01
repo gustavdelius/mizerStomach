@@ -163,6 +163,10 @@ validate_fit <- function(fit) {
 #' @return The input data frame, optionally filtered by `species`, with a
 #'   `log_ppmr` column guaranteed to be present. Column classes and extra
 #'   columns are otherwise retained.
+#'
+#' @seealso `vignette("mizerStomach", package = "mizerStomach")` for the input
+#'   workflow and `vignette("PPMR_distributions", package = "mizerStomach")`
+#'   for scientific data-quality considerations beyond these structural checks.
 #' @family validation functions
 #' @examples
 #' # Validate the barnes_data dataset

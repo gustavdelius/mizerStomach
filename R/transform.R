@@ -36,8 +36,9 @@
 #'   `power` set to the requested value.
 #'
 #' @seealso [fit_log_ppmr()] for fitting at a chosen power and
-#'   `vignette("density_functions", package = "mizerStomach")` for the
-#'   derivation of these transformations.
+#'   `vignette("density_functions", package = "mizerStomach")` for weighting
+#'   interpretations and derivations. The kernel-specific target power is
+#'   derived in `vignette("feeding_kernels", package = "mizerStomach")`.
 #' @examples
 #' # Fit a normal distribution and transform to biomass weighting
 #' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
@@ -66,9 +67,9 @@ transform_fit <- function(fit, power) {
             means <- if (is.list(fit$mean)) fit$mean[[i]] else fit$mean[i]
             sds <- if (is.list(fit$sd)) fit$sd[[i]] else fit$sd[i]
             ps <- if (is.list(fit$p)) fit$p[[i]] else fit$p[i]
-            means <- means - dp * sds^2
             ps <- ps * exp(-dp * means + 0.5 * dp^2 * sds^2)
             ps <- ps / sum(ps)
+            means <- means - dp * sds^2
             if (is.list(fit$mean)) {
                 fit$mean[[i]] <- means
                 fit$sd[[i]] <- sds
@@ -133,12 +134,13 @@ transform_truncated_exp <- function(fit, power = 1) {
 #' @param power Numeric exponent by which prey-mass weighting is increased.
 #'
 #' @details
-#' Let \eqn{q} be `power`. The implementation first changes each component mean
-#' from \eqn{\mu_j} to \eqn{\tilde\mu_j=\mu_j-q\sigma_j^2}. It retains the
-#' standard deviations and sets the component proportions proportional to
-#' \eqn{p_j\exp(-q\tilde\mu_j+q^2\sigma_j^2/2)}, then normalizes them to sum to
-#' one. Unlike [transform_fit()], this low-level helper interprets `power` as
-#' the change in exponent and does no validation.
+#' Let \eqn{q} be `power`. Each component mean changes from \eqn{\mu_j} to
+#' \eqn{\tilde\mu_j=\mu_j-q\sigma_j^2}. Standard deviations are retained and
+#' component proportions are set proportional to
+#' \eqn{p_j\exp(-q\mu_j+q^2\sigma_j^2/2)}, then normalized to sum to one. These
+#' are the exact parameters obtained by multiplying the mixture density by
+#' \eqn{\exp(-q l)} and renormalizing. Unlike [transform_fit()], this low-level
+#' helper interprets `power` as the change in exponent and does no validation.
 #'
 #' @return `fit` with transformed `mean` and normalized `p`; `sd` is unchanged.
 #' @examples
@@ -147,8 +149,8 @@ transform_truncated_exp <- function(fit, power = 1) {
 #' @export
 #' @keywords internal
 transform_gaussian_mixture <- function(fit, power = 1) {
-    fit$mean <- fit$mean - power * fit$sd^2
     p <- fit$p * exp(-power * fit$mean + 0.5 * power^2 * fit$sd^2)
     fit$p <- p / sum(p)
+    fit$mean <- fit$mean - power * fit$sd^2
     return(fit)
 }

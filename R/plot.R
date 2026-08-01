@@ -32,7 +32,9 @@
 #' @return A [ggplot2::ggplot()] object.
 #'
 #' @seealso [fit_log_ppmr()] to estimate the fit and [get_density()] to obtain
-#'   the curve values directly.
+#'   the curve values directly. See
+#'   `vignette("PPMR_distributions", package = "mizerStomach")` for guidance on
+#'   interpreting the diagnostic.
 #' @examples
 #' # Plot a normal fit for one species
 #' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
@@ -208,7 +210,8 @@ plot_log_ppmr_fit <- function(ppmr_data, fit, type = c("kernel", "histogram")) {
 #'
 #' @seealso [plot_log_ppmr_fit()] for fitted marginal distributions and
 #'   [fit_log_ppmr()] for fitting after the predator-size assumption has been
-#'   assessed.
+#'   assessed. Worked examples are in
+#'   `vignette("PPMR_distributions", package = "mizerStomach")`.
 #' @examples
 #' # Biomass-weighted violin plot
 #' plot_ppmr_violins(barnes_data, "Albacore")

@@ -37,6 +37,11 @@ This vignette introduces the usual workflow:
 4. inspect the fitted number and biomass distributions; and
 5. transfer the fit to a mizer model.
 
+For more depth, read `vignette("density_functions")` for weighting theory,
+`vignette("PPMR_distributions")` for fit diagnostics, and
+`vignette("feeding_kernels")` for the stomach-to-kernel assumptions and
+derivation.
+
 ## Set up
 
 ```{r setup}
@@ -118,21 +123,21 @@ where $q$ is the `power` argument. Useful choices include:
 | `power` | Distribution emphasized |
 |:--|:--|
 | `0` | Number of prey individuals in stomachs |
+| `2/3` | Diet biomass under the package's surface-area scaling assumption for digestion |
 | `1` | Prey biomass in stomachs |
-| `2/3` | A commonly used intermediate weighting motivated by surface-area scaling of digestion |
+| `lambda - 4/3` | Feeding-kernel representation used for a mizer model with resource exponent `lambda` |
 
 The best choice depends on the question and on which part of the observed
 distribution is reliable. Large numbers of tiny prey can dominate a number fit
 while contributing little biomass. Conversely, a few large prey can dominate a
 biomass fit.
 
-A fit stores its exponent in the `power` column. For the normal and
-truncated-exponential families, `transform_fit()` can analytically express the
-fitted family at another exponent. It does this by multiplying the fitted
-density by the appropriate exponential function of log PPMR and renormalizing;
-it does *not* return to the observations. A direct fit at the target power can
-therefore differ when the chosen family is only an approximation to the data,
-or when PPMR depends on predator size.
+A fit stores its exponent in the `power` column. `transform_fit()` can
+analytically express each supported fitted family at another exponent. It does
+this by multiplying the fitted density by the appropriate exponential function
+of log PPMR and renormalizing; it does *not* return to the observations. A
+direct fit at the target power can therefore differ when the chosen family is
+only an approximation to the data, or when PPMR depends on predator size.
 
 ## Fit a distribution
 
@@ -184,9 +189,9 @@ cod_truncated <- fit_log_ppmr(
 
 The third family, `distribution = "gauss_mix"`, fits a two-component normal
 mixture with weighted EM updates. It can represent multimodality but is not
-currently supported by `set_kernel_params()`. Its deterministic initialization
-and current iteration behavior make it best treated as an exploratory fit; see
-`?fit_gaussian_mixture` and check the result carefully.
+currently supported by `set_kernel_params()`. Mixture fits can be sensitive to
+initialization and nearly degenerate components, so use them for exploratory
+diagnosis and check the result carefully.
 
 ## Diagnose a fit
 
@@ -295,11 +300,13 @@ number-weighted log-PPMR representation implied by the current model kernels.
 The other vignettes develop the assumptions behind this workflow:
 
 * `vignette("density_functions", package = "mizerStomach")` derives the
-  relationships between number, biomass, and log-PPMR densities.
+  relationships among number, stomach biomass, diet biomass, and other
+  log-PPMR weightings.
+* `vignette("PPMR_distributions", package = "mizerStomach")` discusses data
+  limitations, predator-size dependence, family choice, and fit diagnostics.
 * `vignette("feeding_kernels", package = "mizerStomach")` derives the
-  transformation from stomach distributions to feeding kernels.
-* `vignette("PPMR_distributions", package = "mizerStomach")` gives a more
-  detailed exploration of fitted PPMR distributions.
+  transformation from a stomach distribution to a mizer feeding kernel and
+  explains its assumptions.
 
 The practical rule is simple: validate the measurements, inspect the
 predator-size dependence, fit at a weighting relevant to the biological

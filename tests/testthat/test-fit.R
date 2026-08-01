@@ -27,6 +27,17 @@ test_that("fit_gaussian_mixture returns correct structure", {
     expect_true(all(result$sd > 0))
 })
 
+test_that("fit_gaussian_mixture iterates beyond the first EM update", {
+    value <- c(seq(-4, -1, length.out = 20),
+               seq(1, 5, length.out = 30))
+    weight <- c(rep(1, 20), rep(2, 30))
+    one_update <- fit_gaussian_mixture(value, weight, k = 2, max_iter = 1)
+    converged <- fit_gaussian_mixture(value, weight, k = 2, max_iter = 100)
+
+    expect_false(isTRUE(all.equal(one_update$mean, converged$mean)))
+    expect_equal(sum(converged$p), 1, tolerance = 1e-10)
+})
+
 test_that("fit_truncated_exponential returns correct structure", {
     result <- fit_truncated_exponential(sp_data$log_ppmr, sp_data$n_prey)
     expect_type(result, "list")

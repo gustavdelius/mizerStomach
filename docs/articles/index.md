@@ -1,10 +1,15 @@
 # Articles
 
-### All vignettes
+### Start here
 
-- [Density functions](density_functions.md):
-- [Feeding kernels from stomach distributions](feeding_kernels.md):
-- [Getting started](mizerStomach.md):
-- [Predator/prey mass ratio distributions from stomach
-  data](PPMR_distributions.md):
-- [Prey size selectivity](size_selectivity.md):
+- [Getting
+  started](https://gustavdelius.github.io/mizerStomach/articles/mizerStomach.md):
+
+### Learn more
+
+- [Weighting and log-PPMR
+  distributions](https://gustavdelius.github.io/mizerStomach/articles/density_functions.md):
+- [Choosing and diagnosing a log-PPMR
+  distribution](https://gustavdelius.github.io/mizerStomach/articles/PPMR_distributions.md):
+- [From stomach distributions to mizer feeding
+  kernels](https://gustavdelius.github.io/mizerStomach/articles/feeding_kernels.md):

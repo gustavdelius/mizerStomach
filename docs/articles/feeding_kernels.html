@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Feeding kernels from stomach distributions • mizerStomach</title>
+<title>From stomach distributions to mizer feeding kernels • mizerStomach</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Feeding kernels from stomach distributions">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="From stomach distributions to mizer feeding kernels">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -31,15 +31,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../articles/mizerStomach.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/density_functions.html">Density functions</a></li>
-    <li><a class="dropdown-item" href="../articles/feeding_kernels.html">Feeding kernels from stomach distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/PPMR_distributions.html">Predator/prey mass ratio distributions from stomach data</a></li>
-    <li><a class="dropdown-item" href="../articles/size_selectivity.html">Prey size selectivity</a></li>
-  </ul>
-</li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -59,11 +51,8 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Feeding kernels from stomach distributions</h1>
-                        <h4 data-toc-skip class="author">Gustav
-Delius</h4>
+      <h1>From stomach distributions to mizer feeding kernels</h1>
             
-            <h4 data-toc-skip class="date">05/11/2021</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gustavdelius/mizerStomach/blob/HEAD/vignettes/feeding_kernels.Rmd" class="external-link"><code>vignettes/feeding_kernels.Rmd</code></a></small>
       <div class="d-none name"><code>feeding_kernels.Rmd</code></div>
@@ -71,157 +60,270 @@ Delius</h4>
 
     
     
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://gustavdelius.github.io/mizerStomach/">mizerStomach</a></span><span class="op">)</span></span></code></pre></div>
+<p>A stomach-content distribution is a realized outcome: it depends on
+predator preference, available prey, ingestion, digestion, and sampling.
+A mizer feeding kernel represents only the prey-size dependence of
+encounter and selection. Connecting the two therefore requires
+assumptions.</p>
+<p>This article derives the transformation used by
+<code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code> and shows how it is applied. The
+weighting notation is introduced in
+<code><a href="../articles/density_functions.html">vignette("density_functions")</a></code>; distribution selection and
+diagnostics are discussed in
+<code><a href="../articles/PPMR_distributions.html">vignette("PPMR_distributions")</a></code>.</p>
 <div class="section level2">
-<h2 id="feeding-kernel">Feeding kernel<a class="anchor" aria-label="anchor" href="#feeding-kernel"></a>
+<h2 id="assumptions">Assumptions<a class="anchor" aria-label="anchor" href="#assumptions"></a>
 </h2>
-<p>Now we will discuss how the stomach content is related to the feeding
-kernel.</p>
-<p>The stomach content is the result of a balance between the rate at
-which prey items are ingested and the rate at which they are digested.
-So we start by looking at ingestion and digestion rates.</p>
-<div class="section level3">
-<h3 id="ingestion">Ingestion<a class="anchor" aria-label="anchor" href="#ingestion"></a>
-</h3>
-<p>The rate density
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="false" form="prefix">|</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(w|w')</annotation></semantics></math>
-at which a predator of size
+<p>The package uses the following approximation:</p>
+<ol style="list-style-type: decimal">
+<li>The log predator/prey mass-ratio distribution is adequately
+independent of predator mass over the fitted range.</li>
+<li>Stomach contents are in a statistical steady state: prey of each
+size enter stomachs through ingestion at the same average rate at which
+they cease to be identifiable through digestion.</li>
+<li>The mass digestion rate scales as prey mass to the power
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>/</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">2/3</annotation></semantics></math>.</li>
+<li>The prey community experienced by the predator has number density
+proportional to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>w</mi><mrow><mo>−</mo><mi>λ</mi></mrow></msup><annotation encoding="application/x-tex">w^{-\lambda}</annotation></semantics></math>.</li>
+<li>Other effects on detectability and stomach residence time do not
+introduce an additional systematic prey-size dependence.</li>
+</ol>
+<p>These assumptions are a modeling choice, not information recovered
+from the stomach data. The resulting kernel should be interpreted and
+tested with that uncertainty in mind.</p>
+</div>
+<div class="section level2">
+<h2 id="ingestion">Ingestion<a class="anchor" aria-label="anchor" href="#ingestion"></a>
+</h2>
+<p>Let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">w'</annotation></semantics></math>
-swallows prey of size
+be predator mass,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
-is proportional to the product of the feeding kernel
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\phi(w'/w)</annotation></semantics></math>
-and the prey number density
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N_c(w)</annotation></semantics></math>:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="false" form="prefix">|</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>i</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.222em"></mspace><msub><mi>N</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
-I(w|w') = i(w') \phi(w'/w)\ N_c(w)
-</annotation></semantics></math> This is a rate density, fin the sense
-that if one integrates this over a range of prey sizes one gets the rate
-at which the predator swallows individuals from this size range.</p>
-<p>The proportionality constant
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">i(w')</annotation></semantics></math>
-only depends on the predator size
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">w'</annotation></semantics></math>
-and, as we will see, we will not need it in our analysis. The prey
-number density
+prey mass, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">l=\log(w'/w)</annotation></semantics></math>.
+Write the rate density at which a predator ingests prey of mass
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+as</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>i</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><msub><mi>N</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+I(w\mid w') =
+i(w')\,\phi(w'/w)\,N_c(w).
+</annotation></semantics></math></p>
+<p>Here
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
+is the feeding-kernel shape,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N_c(w)</annotation></semantics></math>
-is defined as usual such that
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">N_c(w)dw</annotation></semantics></math>
-is the total number of potential prey items with sizes between
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>+</mo><mi>d</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">w+dw</annotation></semantics></math>.</p>
-<p>In a multi-species model in which the predator has different
-interaction strengths with different prey species, given by an
-interaction matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\theta_{ij}</annotation></semantics></math>,
-the prey number density for a predator of species
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
-would be obtained from the number densities
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N_j(w)</annotation></semantics></math>
-of individual prey species as
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>θ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msub><mi>N</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
-N_c(w) = \sum_j \theta_{ij}N_j(w).
-</annotation></semantics></math> Of course, we do not know the prey
-density that the predators experienced that were sampled in the stomach
-observation. So the best we can do is to assume that it was reasonably
-close to the Sheldon spectrum
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>n</mi><mi>c</mi></msub><mspace width="0.222em"></mspace><msup><mi>w</mi><mrow><mi>−</mi><mi>λ</mi></mrow></msup></mrow><annotation encoding="application/x-tex">
-N_c(w) = n_c\ w^{-\lambda}
-</annotation></semantics></math> with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>≈</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\lambda \approx 2</annotation></semantics></math>.</p>
+is the number density of available prey, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">i(w')</annotation></semantics></math>
+contains factors that depend on predator mass but not prey mass. In a
+multispecies model,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>c</mi></msub><annotation encoding="application/x-tex">N_c</annotation></semantics></math>
+can include species interaction strengths:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>θ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msub><mi>N</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+N_c(w)=\sum_j\theta_{ij}N_j(w).
+</annotation></semantics></math></p>
+<p>The historical prey field experienced by sampled predators is rarely
+known. The package approximates it by a power-law resource spectrum,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>c</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>n</mi><mi>c</mi></msub><msup><mi>w</mi><mrow><mo>−</mo><mi>λ</mi></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+N_c(w)=n_c w^{-\lambda}.
+</annotation></semantics></math></p>
+<p>For a mizer model,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+is read from <code>params@resource_params$lambda</code>; it is not fixed
+at two by the package.</p>
 </div>
-<div class="section level3">
-<h3 id="digestion">Digestion<a class="anchor" aria-label="anchor" href="#digestion"></a>
-</h3>
-<p>Prey items will stay identifiable in the predator stomach only for a
-certain period of time before they disintegrate. After that time they
-will not contribute to the observation of prey items in the stomach. Of
-course we do not know in detail the rate at which prey items are
-digested. However it is reasonable to make the approximation that the
-rate at which a prey item has its body mass digested away scales with
-body size as
+<div class="section level2">
+<h2 id="digestion-and-stomach-residence">Digestion and stomach residence<a class="anchor" aria-label="anchor" href="#digestion-and-stomach-residence"></a>
+</h2>
+<p>If prey mass is digested at a rate proportional to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>w</mi><mrow><mn>2</mn><mi>/</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">w^{2/3}</annotation></semantics></math>
-because digestion acts on the surface of the prey item and this surface
-scales approximately as
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>w</mi><mrow><mn>2</mn><mi>/</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">w^{2/3}</annotation></semantics></math>.
-Let us assume that a prey item becomes unidentifiable when a fixed
-percentage of its body mass is digested. The time until that has
-happened is proportional to the body mass divided by the rate at which
-mass is digested:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>∝</mo><mi>w</mi><mi>/</mi><msup><mi>w</mi><mrow><mn>2</mn><mi>/</mi><mn>3</mn></mrow></msup><mo>=</mo><msup><mi>w</mi><mrow><mn>1</mn><mi>/</mi><mn>3</mn></mrow></msup></mrow><annotation encoding="application/x-tex">T\propto w/w^{2/3} = w^{1/3}</annotation></semantics></math>.
-The rate at which a prey item of size
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
-disintegrate is equal to the inverse of the disintegration time.
-Denoting that rate by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">D(w)</annotation></semantics></math>
-we have
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>d</mi><mspace width="0.222em"></mspace><msup><mi>w</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>3</mn></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
-D(w) = d\ w^{-1/3}.
-</annotation></semantics></math> The proportionality constant
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
-will not be important in what follows.</p>
-</div>
-<div class="section level3">
-<h3 id="balance-equation">Balance equation<a class="anchor" aria-label="anchor" href="#balance-equation"></a>
-</h3>
-<p>We describe the size distribution of prey in stomachs of predators of
-size
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">w'</annotation></semantics></math>
-by the density function
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="false" form="prefix">|</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N_w(w|w')</annotation></semantics></math>.
-See the <a href="density_functions.html">Density functions</a> vignette
-for a discussion of this density function.</p>
-<p>The observed stomach content is such that the rate at which prey
-items of a particular size are ingested is equal to the rate at which
-such items disintegrates due to digestion and thus
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="false" form="prefix">|</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>D</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="false" form="prefix">|</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(w|w') = D(w)N_w(w|w')</annotation></semantics></math>.
-Using our expressions for these rates we obtain
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.222em"></mspace><msub><mi>n</mi><mi>c</mi></msub><mspace width="0.222em"></mspace><msup><mi>w</mi><mrow><mi>−</mi><mi>λ</mi></mrow></msup><mo>=</mo><mi>d</mi><mspace width="0.222em"></mspace><msup><mi>w</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>3</mn></mrow></msup><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="false" form="prefix">|</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
-i(w') \phi(w'/w)\ n_c\ w^{-\lambda} = d\ w^{-1/3} N_w(w|w').
-</annotation></semantics></math> This we can solve for the feeding
-kernel:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mi>d</mi><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><msub><mi>n</mi><mi>c</mi></msub></mrow></mfrac><mspace width="0.222em"></mspace><msup><mi>w</mi><mrow><mi>λ</mi><mo>−</mo><mn>1</mn><mi>/</mi><mn>3</mn></mrow></msup><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="false" form="prefix">|</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\phi(w'/w) = \frac{d}{i(w')\,n_c}\ w^{\lambda - 1/3}N_w(w|w').
-</annotation></semantics></math> Using further that (see <a href="density_functions.html">Density functions</a>)
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="false" form="prefix">|</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∝</mo><msup><mi>e</mi><mi>l</mi></msup><msub><mi>f</mi><mi>l</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
-N_w(w|w') \propto e^lf_l(l)
-</annotation></semantics></math> where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">l=\log(w'/w)</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>∝</mo><msup><mi>e</mi><mrow><mi>−</mi><mi>l</mi></mrow></msup></mrow><annotation encoding="application/x-tex">w\propto e^{- l}</annotation></semantics></math>,
-we find
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∝</mo><msup><mi>e</mi><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>4</mn><mi>/</mi><mn>3</mn><mo>−</mo><mi>λ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>l</mi></mrow></msup><msub><mi>f</mi><mi>l</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
-\phi(w'/w) \propto e^{(4/3 - \lambda)l}f_l(l)
-</annotation></semantics></math> This tells us that if the stomach
-distribution
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>l</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_l(l)</annotation></semantics></math>
-is described by the truncated exponential distribution with rate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>,
-the feeding kernel as a function of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>
-is described by the truncated exponential distribution with rate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>+</mo><mn>4</mn><mi>/</mi><mn>3</mn><mo>−</mo><mi>λ</mi></mrow><annotation encoding="application/x-tex">\alpha + 4/3 - \lambda</annotation></semantics></math>.</p>
-<p>If the stomach distribution
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>l</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_l(l)</annotation></semantics></math>
-is the normal distribution with mean
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
-and variance
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>σ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\sigma^2</annotation></semantics></math>
-then the feeding kernel as a function of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>
-is also a Gaussian with the same variance and with mean
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>4</mn><mi>/</mi><mn>3</mn><mo>−</mo><mi>λ</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mi>σ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\mu + (4/3 - \lambda)\sigma^2</annotation></semantics></math>.</p>
-<p>We assume that on average the stomach observations reflect the steady
-state with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>N</mi><mi>/</mi><mi>d</mi><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">dN/dt=0</annotation></semantics></math>.
-We now substitute our expressions for the various rates into the
-resulting balance equation:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>=</mo><mi>i</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.222em"></mspace><msup><mi>w</mi><mrow><mi>−</mi><mi>λ</mi></mrow></msup><mo>+</mo><mfrac><mi>∂</mi><msub><mi>∂</mi><mi>w</mi></msub></mfrac><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mi>w</mi><mrow><mn>2</mn><mi>/</mi><mn>3</mn></mrow></msup><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="false" form="prefix">|</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>u</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mi>w</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>3</mn></mrow></msup><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="false" form="prefix">|</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
-0 = i(w') \phi(w'/w)\ w^{-\lambda} 
-+ \frac{\partial}{\partial_w}\left(d(w')w^{2/3}N_w(w|w')\right)
-- u(w')w^{-1/3}N_w(w|w')
+and prey remains identifiable until a fixed fraction has been digested,
+identifiable residence time scales as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>w</mi><mrow><mn>1</mn><mi>/</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">w^{1/3}</annotation></semantics></math>.
+The corresponding disappearance rate is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>d</mi><msup><mi>w</mi><mrow><mo>−</mo><mn>1</mn><mi>/</mi><mn>3</mn></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+D(w)=d w^{-1/3}.
+</annotation></semantics></math></p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N_w(w\mid w')</annotation></semantics></math>
+be the stomach prey-number density. The steady-state balance assumption
+is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>D</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+I(w\mid w')=D(w)N_w(w\mid w').
+</annotation></semantics></math></p>
+<p>Substitution gives</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>n</mi><mi>c</mi></msub><msup><mi>w</mi><mrow><mo>−</mo><mi>λ</mi></mrow></msup><mo>=</mo><mi>d</mi><msup><mi>w</mi><mrow><mo>−</mo><mn>1</mn><mi>/</mi><mn>3</mn></mrow></msup><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+i(w')\phi(w'/w)n_cw^{-\lambda}
+=d w^{-1/3}N_w(w\mid w'),
+</annotation></semantics></math></p>
+<p>and hence, up to factors independent of prey mass,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∝</mo><msup><mi>w</mi><mrow><mi>λ</mi><mo>−</mo><mn>1</mn><mi>/</mi><mn>3</mn></mrow></msup><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\phi(w'/w)\propto
+w^{\lambda-1/3}N_w(w\mid w').
 </annotation></semantics></math></p>
 </div>
+<div class="section level2">
+<h2 id="express-the-result-on-the-log-ppmr-scale">Express the result on the log-PPMR scale<a class="anchor" aria-label="anchor" href="#express-the-result-on-the-log-ppmr-scale"></a>
+</h2>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_0(l)</annotation></semantics></math>
+be the number-weighted probability density of identifiable stomach prey.
+The change of variables derived in
+<code><a href="../articles/density_functions.html">vignette("density_functions")</a></code> gives</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∝</mo><mi>w</mi><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>N</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∝</mo><mfrac><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mi>w</mi></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+f_0(l)\propto w N_w(w\mid w'),
+\qquad
+N_w(w\mid w')\propto \frac{f_0(l)}{w}.
+</annotation></semantics></math></p>
+<p>Therefore</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∝</mo><msup><mi>w</mi><mrow><mi>λ</mi><mo>−</mo><mn>4</mn><mi>/</mi><mn>3</mn></mrow></msup><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∝</mo><msup><mi>e</mi><mrow><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>λ</mi><mo>−</mo><mn>4</mn><mi>/</mi><mn>3</mn><mo stretchy="true" form="postfix">)</mo></mrow><mi>l</mi></mrow></msup><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\phi(w'/w)
+\propto w^{\lambda-4/3}f_0(l)
+\propto e^{-(\lambda-4/3)l}f_0(l).
+</annotation></semantics></math></p>
+<p>In the package’s weighting notation, the kernel shape is the stomach
+distribution represented at</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mrow><mi>m</mi><mi>i</mi><mi>z</mi><mi>e</mi><mi>r</mi></mrow></msub><mo>=</mo><mi>λ</mi><mo>−</mo><mfrac><mn>4</mn><mn>3</mn></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+q_{mizer}=\lambda-\frac{4}{3}.
+</annotation></semantics></math></p>
+<p>This is exactly the target power used internally by
+<code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code>. A fit can have been estimated at any
+recorded <code>power</code>; <code><a href="../reference/transform_fit.html">transform_fit()</a></code> moves it from
+that power to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mrow><mi>m</mi><mi>i</mi><mi>z</mi><mi>e</mi><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">q_{mizer}</annotation></semantics></math>
+before model parameters are set.</p>
+</div>
+<div class="section level2">
+<h2 id="consequences-for-fitted-families">Consequences for fitted families<a class="anchor" aria-label="anchor" href="#consequences-for-fitted-families"></a>
+</h2>
+<p>Suppose a fit was estimated at exponent
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mn>0</mn></msub><annotation encoding="application/x-tex">q_0</annotation></semantics></math>
+and let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>=</mo><msub><mi>q</mi><mrow><mi>m</mi><mi>i</mi><mi>z</mi><mi>e</mi><mi>r</mi></mrow></msub><mo>−</mo><msub><mi>q</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">a=q_{mizer}-q_0</annotation></semantics></math>.</p>
+<p>For a normal distribution,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mrow><mi>k</mi><mi>e</mi><mi>r</mi><mi>n</mi><mi>e</mi><mi>l</mi></mrow></msub><mo>=</mo><msub><mi>μ</mi><mrow><mi>f</mi><mi>i</mi><mi>t</mi></mrow></msub><mo>−</mo><mi>a</mi><msup><mi>σ</mi><mn>2</mn></msup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>σ</mi><mrow><mi>k</mi><mi>e</mi><mi>r</mi><mi>n</mi><mi>e</mi><mi>l</mi></mrow></msub><mo>=</mo><mi>σ</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mu_{kernel}=\mu_{fit}-a\sigma^2,
+\qquad
+\sigma_{kernel}=\sigma.
+</annotation></semantics></math></p>
+<p>mizer represents this as a <code>"lognormal"</code> kernel with
+<code>beta = exp(mu_kernel)</code> and
+<code>sigma = sigma_kernel</code>.</p>
+<p>For a smoothly truncated exponential,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mrow><mi>k</mi><mi>e</mi><mi>r</mi><mi>n</mi><mi>e</mi><mi>l</mi></mrow></msub><mo>=</mo><msub><mi>α</mi><mrow><mi>f</mi><mi>i</mi><mi>t</mi></mrow></msub><mo>−</mo><mi>a</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\alpha_{kernel}=\alpha_{fit}-a,
+</annotation></semantics></math></p>
+<p>while the two cutoff locations and steepnesses are unchanged. mizer
+represents this as a <code>"power_law"</code> kernel using its five
+<code>kernel_*</code> columns.</p>
+<p>Gaussian mixtures are closed under the weighting transformation but
+do not currently have a corresponding mizer kernel parameterization, so
+<code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code> rejects them.</p>
+</div>
+<div class="section level2">
+<h2 id="worked-mizer-example">Worked mizer example<a class="anchor" aria-label="anchor" href="#worked-mizer-example"></a>
+</h2>
+<p>We fit the Atlantic cod diet distribution at
+<code>power = 2/3</code>. The North Sea example model calls this species
+<code>"Cod"</code>, so the fit must be renamed before it is
+transferred.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cod_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_log_ppmr.html">fit_log_ppmr</a></span><span class="op">(</span></span>
+<span>  <span class="va">barnes_data</span>,</span>
+<span>  species <span class="op">=</span> <span class="st">"Atlantic cod"</span>,</span>
+<span>  distribution <span class="op">=</span> <span class="st">"normal"</span>,</span>
+<span>  power <span class="op">=</span> <span class="fl">2</span> <span class="op">/</span> <span class="fl">3</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">cod_fit</span></span>
+<span><span class="co">#&gt;                  mean       sd      species distribution     power min_w_pred</span></span>
+<span><span class="co">#&gt; Atlantic cod 3.443057 1.276434 Atlantic cod       normal 0.6666667          0</span></span></code></pre></div>
+<p>The model’s resource exponent determines the exact kernel
+weighting:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu">mizer</span><span class="fu">::</span><span class="va"><a href="https://sizespectrum.org/mizer/reference/NS_params.html" class="external-link">NS_params</a></span></span>
+<span><span class="va">kernel_power</span> <span class="op">&lt;-</span> <span class="va">params</span><span class="op">@</span><span class="va">resource_params</span><span class="op">$</span><span class="va">lambda</span> <span class="op">-</span> <span class="fl">4</span> <span class="op">/</span> <span class="fl">3</span></span>
+<span><span class="va">kernel_power</span></span>
+<span><span class="co">#&gt; [1] 0.8</span></span>
+<span><span class="fu"><a href="../reference/transform_fit.html">transform_fit</a></span><span class="op">(</span><span class="va">cod_fit</span>, power <span class="op">=</span> <span class="va">kernel_power</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                  mean       sd      species distribution power min_w_pred</span></span>
+<span><span class="co">#&gt; Atlantic cod 3.225819 1.276434 Atlantic cod       normal   0.8          0</span></span></code></pre></div>
+<p><code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code> performs that transformation itself.
+Only species present in the supplied fit are changed, and the returned
+object must be assigned.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">model_cod_fit</span> <span class="op">&lt;-</span> <span class="va">cod_fit</span></span>
+<span><span class="va">model_cod_fit</span><span class="op">$</span><span class="va">species</span> <span class="op">&lt;-</span> <span class="st">"Cod"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">model_cod_fit</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"Cod"</span></span>
+<span></span>
+<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_kernel_params.html">set_kernel_params</a></span><span class="op">(</span><span class="va">params</span>, <span class="va">model_cod_fit</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span></span>
+<span>  <span class="fu">mizer</span><span class="fu">::</span><span class="fu"><a href="https://sizespectrum.org/mizer/reference/species_params.html" class="external-link">species_params</a></span><span class="op">(</span><span class="va">params</span><span class="op">)</span>,</span>
+<span>  <span class="va">species</span> <span class="op">==</span> <span class="st">"Cod"</span>,</span>
+<span>  select <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">species</span>, <span class="va">pred_kernel_type</span>, <span class="va">beta</span>, <span class="va">sigma</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; An object of class "species_params" containing parameters for 1 species:</span></span>
+<span><span class="co">#&gt;  species pred_kernel_type     beta    sigma</span></span>
+<span><span class="co">#&gt;      Cod        lognormal 25.17419 1.276434</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="extract-and-inspect-existing-kernels">Extract and inspect existing kernels<a class="anchor" aria-label="anchor" href="#extract-and-inspect-existing-kernels"></a>
+</h2>
+<p><code><a href="../reference/extract_fit.html">extract_fit()</a></code> reverses the parameter mapping and returns
+distributions at <code>power = 0</code>. This allows existing model
+kernels to be inspected with <code><a href="../reference/plot_log_ppmr_fit.html">plot_log_ppmr_fit()</a></code>, evaluated
+with <code><a href="../reference/get_density.html">get_density()</a></code>, or transformed to another
+weighting.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">model_fits</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_fit.html">extract_fit</a></span><span class="op">(</span><span class="va">params</span><span class="op">)</span></span>
+<span><span class="va">model_fits</span><span class="op">[</span><span class="st">"Cod"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"species"</span>, <span class="st">"distribution"</span>, <span class="st">"power"</span>, <span class="st">"mean"</span>, <span class="st">"sd"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;     species distribution power     mean       sd</span></span>
+<span><span class="co">#&gt; Cod     Cod       normal     0 4.529247 1.276434</span></span>
+<span></span>
+<span><span class="va">cod_diet_again</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/transform_fit.html">transform_fit</a></span><span class="op">(</span></span>
+<span>  <span class="va">model_fits</span><span class="op">[</span><span class="st">"Cod"</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span>,</span>
+<span>  power <span class="op">=</span> <span class="fl">2</span> <span class="op">/</span> <span class="fl">3</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">cod_diet_again</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"power"</span>, <span class="st">"mean"</span>, <span class="st">"sd"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;         power     mean       sd</span></span>
+<span><span class="co">#&gt; Cod 0.6666667 3.443057 1.276434</span></span></code></pre></div>
+<p><code><a href="../reference/extract_fit.html">extract_fit()</a></code> accepts <code>species_dict</code> when
+model and stomach-data names need to be reconciled in the opposite
+direction.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cod_from_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_fit.html">extract_fit</a></span><span class="op">(</span></span>
+<span>  <span class="va">params</span>,</span>
+<span>  species_dict <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Cod <span class="op">=</span> <span class="st">"Atlantic cod"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">cod_from_model</span><span class="op">[</span><span class="st">"Atlantic cod"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"species"</span>, <span class="st">"distribution"</span>, <span class="st">"power"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;                   species distribution power</span></span>
+<span><span class="co">#&gt; Atlantic cod Atlantic cod       normal     0</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="interpretation-and-sensitivity">Interpretation and sensitivity<a class="anchor" aria-label="anchor" href="#interpretation-and-sensitivity"></a>
+</h2>
+<p>The fitted kernel is conditional on the assumed prey spectrum and
+digestion scaling. In particular:</p>
+<ul>
+<li>changing
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+changes the exponential tilt and therefore the kernel mean or
+slope;</li>
+<li>size-dependent prey availability can be mistaken for predator
+preference;</li>
+<li>digestion and identification rates may not follow one allometry for
+all prey types;</li>
+<li>pooled stomach observations can mix different prey fields and
+predator behaviors; and</li>
+<li>a good fit to stomach densities does not validate the resulting
+population dynamics.</li>
+</ul>
+<p>Treat the transferred parameters as empirically informed starting
+values. Evaluate them with the other evidence available for the predator
+and with mizer model diagnostics or calibration. Exact parameter
+mappings and error conditions are documented in
+<code><a href="../reference/set_kernel_params.html">?set_kernel_params</a></code> and <code><a href="../reference/extract_fit.html">?extract_fit</a></code>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

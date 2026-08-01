@@ -41,7 +41,9 @@
 #' }
 #'
 #' @seealso [fit_log_ppmr()] for non-interactive fitting and
-#'   [plot_log_ppmr_fit()] for the diagnostic shown by the gadget.
+#'   [plot_log_ppmr_fit()] for the diagnostic shown by the gadget. See
+#'   `vignette("PPMR_distributions", package = "mizerStomach")` for fit-selection
+#'   and reporting guidance.
 #' @export
 fit_shiny <- function(ppmr_data,
                       fits = NULL,

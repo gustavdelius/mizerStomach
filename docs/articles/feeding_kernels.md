@@ -1,121 +1,244 @@
-# Feeding kernels from stomach distributions
+# From stomach distributions to mizer feeding kernels
 
-## Feeding kernel
-
-Now we will discuss how the stomach content is related to the feeding
-kernel.
-
-The stomach content is the result of a balance between the rate at which
-prey items are ingested and the rate at which they are digested. So we
-start by looking at ingestion and digestion rates.
-
-### Ingestion
-
-The rate density $`I(w|w')`$ at which a predator of size $`w'`$ swallows
-prey of size $`w`$ is proportional to the product of the feeding kernel
-$`\phi(w'/w)`$ and the prey number density $`N_c(w)`$:
-``` math
-
-I(w|w') = i(w') \phi(w'/w)\ N_c(w)
+``` r
+library(mizerStomach)
 ```
-This is a rate density, fin the sense that if one integrates this over a
-range of prey sizes one gets the rate at which the predator swallows
-individuals from this size range.
 
-The proportionality constant $`i(w')`$ only depends on the predator size
-$`w'`$ and, as we will see, we will not need it in our analysis. The
-prey number density $`N_c(w)`$ is defined as usual such that
-$`N_c(w)dw`$ is the total number of potential prey items with sizes
-between $`w`$ and $`w+dw`$.
+A stomach-content distribution is a realized outcome: it depends on
+predator preference, available prey, ingestion, digestion, and sampling.
+A mizer feeding kernel represents only the prey-size dependence of
+encounter and selection. Connecting the two therefore requires
+assumptions.
 
-In a multi-species model in which the predator has different interaction
-strengths with different prey species, given by an interaction matrix
-$`\theta_{ij}`$, the prey number density for a predator of species $`i`$
-would be obtained from the number densities $`N_j(w)`$ of individual
-prey species as
-``` math
+This article derives the transformation used by
+[`set_kernel_params()`](https://gustavdelius.github.io/mizerStomach/reference/set_kernel_params.md)
+and shows how it is applied. The weighting notation is introduced in
+[`vignette("density_functions")`](https://gustavdelius.github.io/mizerStomach/articles/density_functions.md);
+distribution selection and diagnostics are discussed in
+[`vignette("PPMR_distributions")`](https://gustavdelius.github.io/mizerStomach/articles/PPMR_distributions.md).
 
-N_c(w) = \sum_j \theta_{ij}N_j(w).
+## Assumptions
+
+The package uses the following approximation:
+
+1.  The log predator/prey mass-ratio distribution is adequately
+    independent of predator mass over the fitted range.
+2.  Stomach contents are in a statistical steady state: prey of each
+    size enter stomachs through ingestion at the same average rate at
+    which they cease to be identifiable through digestion.
+3.  The mass digestion rate scales as prey mass to the power $2/3$.
+4.  The prey community experienced by the predator has number density
+    proportional to $w^{- \lambda}$.
+5.  Other effects on detectability and stomach residence time do not
+    introduce an additional systematic prey-size dependence.
+
+These assumptions are a modeling choice, not information recovered from
+the stomach data. The resulting kernel should be interpreted and tested
+with that uncertainty in mind.
+
+## Ingestion
+
+Let $w\prime$ be predator mass, $w$ prey mass, and
+$l = \log(w\prime/w)$. Write the rate density at which a predator
+ingests prey of mass $w$ as
+
+$$I(w \mid w\prime) = i(w\prime)\,\phi(w\prime/w)\, N_{c}(w).$$
+
+Here $\phi$ is the feeding-kernel shape, $N_{c}(w)$ is the number
+density of available prey, and $i(w\prime)$ contains factors that depend
+on predator mass but not prey mass. In a multispecies model, $N_{c}$ can
+include species interaction strengths:
+
+$$N_{c}(w) = \sum\limits_{j}\theta_{ij}N_{j}(w).$$
+
+The historical prey field experienced by sampled predators is rarely
+known. The package approximates it by a power-law resource spectrum,
+
+$$N_{c}(w) = n_{c}w^{- \lambda}.$$
+
+For a mizer model, $\lambda$ is read from
+`params@resource_params$lambda`; it is not fixed at two by the package.
+
+## Digestion and stomach residence
+
+If prey mass is digested at a rate proportional to $w^{2/3}$ and prey
+remains identifiable until a fixed fraction has been digested,
+identifiable residence time scales as $w^{1/3}$. The corresponding
+disappearance rate is
+
+$$D(w) = dw^{- 1/3}.$$
+
+Let $N_{w}(w \mid w\prime)$ be the stomach prey-number density. The
+steady-state balance assumption is
+
+$$I(w \mid w\prime) = D(w)N_{w}(w \mid w\prime).$$
+
+Substitution gives
+
+$$i(w\prime)\phi(w\prime/w)n_{c}w^{- \lambda} = dw^{- 1/3}N_{w}(w \mid w\prime),$$
+
+and hence, up to factors independent of prey mass,
+
+$$\phi(w\prime/w) \propto w^{\lambda - 1/3}N_{w}(w \mid w\prime).$$
+
+## Express the result on the log-PPMR scale
+
+Let $f_{0}(l)$ be the number-weighted probability density of
+identifiable stomach prey. The change of variables derived in
+[`vignette("density_functions")`](https://gustavdelius.github.io/mizerStomach/articles/density_functions.md)
+gives
+
+$$f_{0}(l) \propto wN_{w}(w \mid w\prime),\qquad N_{w}(w \mid w\prime) \propto \frac{f_{0}(l)}{w}.$$
+
+Therefore
+
+$$\phi(w\prime/w) \propto w^{\lambda - 4/3}f_{0}(l) \propto e^{- {(\lambda - 4/3)}l}f_{0}(l).$$
+
+In the package’s weighting notation, the kernel shape is the stomach
+distribution represented at
+
+$$q_{mizer} = \lambda - \frac{4}{3}.$$
+
+This is exactly the target power used internally by
+[`set_kernel_params()`](https://gustavdelius.github.io/mizerStomach/reference/set_kernel_params.md).
+A fit can have been estimated at any recorded `power`;
+[`transform_fit()`](https://gustavdelius.github.io/mizerStomach/reference/transform_fit.md)
+moves it from that power to $q_{mizer}$ before model parameters are set.
+
+## Consequences for fitted families
+
+Suppose a fit was estimated at exponent $q_{0}$ and let
+$a = q_{mizer} - q_{0}$.
+
+For a normal distribution,
+
+$$\mu_{kernel} = \mu_{fit} - a\sigma^{2},\qquad\sigma_{kernel} = \sigma.$$
+
+mizer represents this as a `"lognormal"` kernel with
+`beta = exp(mu_kernel)` and `sigma = sigma_kernel`.
+
+For a smoothly truncated exponential,
+
+$$\alpha_{kernel} = \alpha_{fit} - a,$$
+
+while the two cutoff locations and steepnesses are unchanged. mizer
+represents this as a `"power_law"` kernel using its five `kernel_*`
+columns.
+
+Gaussian mixtures are closed under the weighting transformation but do
+not currently have a corresponding mizer kernel parameterization, so
+[`set_kernel_params()`](https://gustavdelius.github.io/mizerStomach/reference/set_kernel_params.md)
+rejects them.
+
+## Worked mizer example
+
+We fit the Atlantic cod diet distribution at `power = 2/3`. The North
+Sea example model calls this species `"Cod"`, so the fit must be renamed
+before it is transferred.
+
+``` r
+cod_fit <- fit_log_ppmr(
+  barnes_data,
+  species = "Atlantic cod",
+  distribution = "normal",
+  power = 2 / 3
+)
+cod_fit
+#>                  mean       sd      species distribution     power min_w_pred
+#> Atlantic cod 3.443057 1.276434 Atlantic cod       normal 0.6666667          0
 ```
-Of course, we do not know the prey density that the predators
-experienced that were sampled in the stomach observation. So the best we
-can do is to assume that it was reasonably close to the Sheldon spectrum
-``` math
 
-N_c(w) = n_c\ w^{-\lambda}
+The model’s resource exponent determines the exact kernel weighting:
+
+``` r
+params <- mizer::NS_params
+kernel_power <- params@resource_params$lambda - 4 / 3
+kernel_power
+#> [1] 0.8
+transform_fit(cod_fit, power = kernel_power)
+#>                  mean       sd      species distribution power min_w_pred
+#> Atlantic cod 3.225819 1.276434 Atlantic cod       normal   0.8          0
 ```
-with $`\lambda \approx 2`$.
 
-### Digestion
+[`set_kernel_params()`](https://gustavdelius.github.io/mizerStomach/reference/set_kernel_params.md)
+performs that transformation itself. Only species present in the
+supplied fit are changed, and the returned object must be assigned.
 
-Prey items will stay identifiable in the predator stomach only for a
-certain period of time before they disintegrate. After that time they
-will not contribute to the observation of prey items in the stomach. Of
-course we do not know in detail the rate at which prey items are
-digested. However it is reasonable to make the approximation that the
-rate at which a prey item has its body mass digested away scales with
-body size as $`w^{2/3}`$ because digestion acts on the surface of the
-prey item and this surface scales approximately as $`w^{2/3}`$. Let us
-assume that a prey item becomes unidentifiable when a fixed percentage
-of its body mass is digested. The time until that has happened is
-proportional to the body mass divided by the rate at which mass is
-digested: $`T\propto w/w^{2/3} = w^{1/3}`$. The rate at which a prey
-item of size $`w`$ disintegrate is equal to the inverse of the
-disintegration time. Denoting that rate by $`D(w)`$ we have
-``` math
+``` r
+model_cod_fit <- cod_fit
+model_cod_fit$species <- "Cod"
+rownames(model_cod_fit) <- "Cod"
 
-D(w) = d\ w^{-1/3}.
+params <- set_kernel_params(params, model_cod_fit)
+subset(
+  mizer::species_params(params),
+  species == "Cod",
+  select = c(species, pred_kernel_type, beta, sigma)
+)
+#> An object of class "species_params" containing parameters for 1 species:
+#>  species pred_kernel_type     beta    sigma
+#>      Cod        lognormal 25.17419 1.276434
 ```
-The proportionality constant $`d`$ will not be important in what
-follows.
 
-### Balance equation
+## Extract and inspect existing kernels
 
-We describe the size distribution of prey in stomachs of predators of
-size $`w'`$ by the density function $`N_w(w|w')`$. See the [Density
-functions](density_functions.md) vignette for a discussion of this
-density function.
+[`extract_fit()`](https://gustavdelius.github.io/mizerStomach/reference/extract_fit.md)
+reverses the parameter mapping and returns distributions at `power = 0`.
+This allows existing model kernels to be inspected with
+[`plot_log_ppmr_fit()`](https://gustavdelius.github.io/mizerStomach/reference/plot_log_ppmr_fit.md),
+evaluated with
+[`get_density()`](https://gustavdelius.github.io/mizerStomach/reference/get_density.md),
+or transformed to another weighting.
 
-The observed stomach content is such that the rate at which prey items
-of a particular size are ingested is equal to the rate at which such
-items disintegrates due to digestion and thus
-$`I(w|w') = D(w)N_w(w|w')`$. Using our expressions for these rates we
-obtain
-``` math
+``` r
+model_fits <- extract_fit(params)
+model_fits["Cod", c("species", "distribution", "power", "mean", "sd")]
+#>     species distribution power     mean       sd
+#> Cod     Cod       normal     0 4.529247 1.276434
 
-i(w') \phi(w'/w)\ n_c\ w^{-\lambda} = d\ w^{-1/3} N_w(w|w').
+cod_diet_again <- transform_fit(
+  model_fits["Cod", , drop = FALSE],
+  power = 2 / 3
+)
+cod_diet_again[c("power", "mean", "sd")]
+#>         power     mean       sd
+#> Cod 0.6666667 3.443057 1.276434
 ```
-This we can solve for the feeding kernel:
-``` math
 
-\phi(w'/w) = \frac{d}{i(w')\,n_c}\ w^{\lambda - 1/3}N_w(w|w').
+[`extract_fit()`](https://gustavdelius.github.io/mizerStomach/reference/extract_fit.md)
+accepts `species_dict` when model and stomach-data names need to be
+reconciled in the opposite direction.
+
+``` r
+cod_from_model <- extract_fit(
+  params,
+  species_dict = c(Cod = "Atlantic cod")
+)
+cod_from_model["Atlantic cod", c("species", "distribution", "power")]
+#>                   species distribution power
+#> Atlantic cod Atlantic cod       normal     0
 ```
-Using further that (see [Density functions](density_functions.md))
-``` math
 
-N_w(w|w') \propto e^lf_l(l)
-```
-where $`l=\log(w'/w)`$ and $`w\propto e^{- l}`$, we find
-``` math
+## Interpretation and sensitivity
 
-\phi(w'/w) \propto e^{(4/3 - \lambda)l}f_l(l)
-```
-This tells us that if the stomach distribution $`f_l(l)`$ is described
-by the truncated exponential distribution with rate $`\alpha`$, the
-feeding kernel as a function of $`l`$ is described by the truncated
-exponential distribution with rate $`\alpha + 4/3 - \lambda`$.
+The fitted kernel is conditional on the assumed prey spectrum and
+digestion scaling. In particular:
 
-If the stomach distribution $`f_l(l)`$ is the normal distribution with
-mean $`\mu`$ and variance $`\sigma^2`$ then the feeding kernel as a
-function of $`l`$ is also a Gaussian with the same variance and with
-mean $`\mu + (4/3 - \lambda)\sigma^2`$.
+- changing $\lambda$ changes the exponential tilt and therefore the
+  kernel mean or slope;
+- size-dependent prey availability can be mistaken for predator
+  preference;
+- digestion and identification rates may not follow one allometry for
+  all prey types;
+- pooled stomach observations can mix different prey fields and predator
+  behaviors; and
+- a good fit to stomach densities does not validate the resulting
+  population dynamics.
 
-We assume that on average the stomach observations reflect the steady
-state with $`dN/dt=0`$. We now substitute our expressions for the
-various rates into the resulting balance equation:
-``` math
-
-0 = i(w') \phi(w'/w)\ w^{-\lambda} 
-+ \frac{\partial}{\partial_w}\left(d(w')w^{2/3}N_w(w|w')\right)
-- u(w')w^{-1/3}N_w(w|w')
-```
+Treat the transferred parameters as empirically informed starting
+values. Evaluate them with the other evidence available for the predator
+and with mizer model diagnostics or calibration. Exact parameter
+mappings and error conditions are documented in
+[`?set_kernel_params`](https://gustavdelius.github.io/mizerStomach/reference/set_kernel_params.md)
+and
+[`?extract_fit`](https://gustavdelius.github.io/mizerStomach/reference/extract_fit.md).

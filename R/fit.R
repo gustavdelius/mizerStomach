@@ -58,7 +58,10 @@
 #'
 #' @seealso [plot_log_ppmr_fit()] to compare a fit with the observations,
 #'   [transform_fit()] to change its weighting, and [set_kernel_params()] to
-#'   transfer supported fits to a mizer model.
+#'   transfer supported fits to a mizer model. See
+#'   `vignette("mizerStomach", package = "mizerStomach")` for the basic workflow
+#'   and `vignette("PPMR_distributions", package = "mizerStomach")` for family
+#'   selection and diagnostics.
 #' @examples
 #' # Fit a normal distribution to one species
 #' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
@@ -178,7 +181,9 @@ fit_log_ppmr <-
 #' fits[c("Cod", "Herring"), c("species", "distribution", "mean", "sd")]
 #'
 #' @seealso [set_kernel_params()] for the reverse conversion and
-#'   [transform_fit()] for the weighting transformation.
+#'   [transform_fit()] for the weighting transformation. The derivation and a
+#'   worked round trip are in
+#'   `vignette("feeding_kernels", package = "mizerStomach")`.
 #' @export
 extract_fit <- function(params, species_dict = NULL) {
   species_params <- params@species_params
@@ -254,7 +259,9 @@ extract_fit <- function(params, species_dict = NULL) {
 #' cod_fit$mean <- cod_fit$mean + 0.1
 #' params <- set_kernel_params(params, cod_fit)
 #'
-#' @seealso [extract_fit()] for the reverse conversion.
+#' @seealso [extract_fit()] for the reverse conversion and
+#'   `vignette("feeding_kernels", package = "mizerStomach")` for the assumptions,
+#'   derivation, and a worked example.
 #' @export
 set_kernel_params <- function(params, fit) {
   fit <- validate_fit(fit)
@@ -413,7 +420,7 @@ fit_truncated_exponential <- function(value, weight, start = NULL) {
 #' @param k Positive integer giving the number of mixture components.
 #' @param max_iter Positive integer giving the maximum number of EM iterations.
 #' @param tol Non-negative numeric convergence tolerance for the absolute change
-#'   in the stored iteration criterion.
+#'   in weighted log-likelihood between EM iterations.
 #'
 #' @details
 #' Mixing proportions are initialized to `1 / k`, component means are equally
@@ -423,14 +430,9 @@ fit_truncated_exponential <- function(value, weight, start = NULL) {
 #' In each E-step, posterior component responsibilities are computed from the
 #' current normal densities. In the M-step, `weight * responsibility` is used
 #' to update each component's mixing proportion, mean, and maximum-likelihood
-#' standard deviation. Iteration stops when the absolute change in the stored
-#' criterion is below `tol` or after `max_iter` iterations.
-#'
-#' The current implementation computes that criterion from the row sums of the
-#' already normalized responsibility matrix. For ordinary finite inputs those
-#' row sums are one, so the criterion is zero and the routine stops after its
-#' second EM update (or after one update if `max_iter = 1`). `tol` therefore
-#' does not currently provide a meaningful likelihood-convergence check.
+#' standard deviation. The weighted log-likelihood is evaluated from the
+#' mixture density before responsibilities are normalized. Iteration stops when
+#' its absolute change is below `tol` or after `max_iter` iterations.
 #'
 #' Mixture likelihoods can have local optima and degenerate solutions. This
 #' routine makes one deterministic initialization and does not impose a lower
@@ -439,6 +441,11 @@ fit_truncated_exponential <- function(value, weight, start = NULL) {
 #'
 #' @return A list with numeric vectors `p`, `mean`, and `sd`, each of length
 #'   `k`. `p` contains the mixing proportions and sums to one.
+#'
+#' @seealso `vignette("density_functions", package = "mizerStomach")` for the
+#'   Gaussian-mixture weighting transformation and
+#'   `vignette("PPMR_distributions", package = "mizerStomach")` for diagnostic
+#'   guidance.
 #' @examples
 #' cod_data <- validate_ppmr_data(barnes_data, species = "Atlantic cod")
 #' fit_gaussian_mixture(cod_data$log_ppmr, cod_data$n_prey)
@@ -462,7 +469,8 @@ fit_gaussian_mixture <- function(value, weight,
         for (j in 1:k) {
             gamma[, j] <- lambda[j] * dnorm(value, mean = mu[j], sd = sigma[j])
         }
-        gamma <- gamma / rowSums(gamma)
+        mixture_density <- rowSums(gamma)
+        gamma <- gamma / mixture_density
 
         # M-step: Update parameters with weights
         for (j in 1:k) {
@@ -473,7 +481,7 @@ fit_gaussian_mixture <- function(value, weight,
         }
 
         # Calculate log-likelihood
-        log_likelihood[iter] <- sum(weight * log(rowSums(gamma)))
+        log_likelihood[iter] <- sum(weight * log(mixture_density))
 
         # Check for convergence
         if (iter > 1 &&

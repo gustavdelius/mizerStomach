@@ -19,7 +19,9 @@
 #'   column per fit row, named with `fit$species`.
 #'
 #' @seealso [fit_log_ppmr()] to create fits and [plot_log_ppmr_fit()] to compare
-#'   fitted and empirical densities.
+#'   fitted and empirical densities. See
+#'   `vignette("density_functions", package = "mizerStomach")` for the
+#'   interpretation of densities at different weightings.
 #' @examples
 #' # Fit a normal distribution and evaluate its density
 #' fit <- fit_log_ppmr(barnes_data, "Albacore", distribution = "normal")
@@ -108,7 +110,9 @@ get_density_single <- function(x, fit) {
 #'   when the density cannot be evaluated reliably.
 #'
 #' @seealso [fit_truncated_exponential()] for weighted maximum-likelihood
-#'   estimation and [transform_truncated_exp()] for changing its weighting.
+#'   estimation, [transform_truncated_exp()] for changing its weighting, and
+#'   `vignette("density_functions", package = "mizerStomach")` for the density
+#'   transformation.
 #' @examples
 #' # Evaluate the truncated exponential density
 #' x <- seq(0, 15, length.out = 100)

@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Getting started • mizerStomach</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting started">
 </head>
@@ -31,15 +31,7 @@
       <ul class="navbar-nav me-auto">
 <li class="active nav-item"><a class="nav-link" href="../articles/mizerStomach.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/density_functions.html">Density functions</a></li>
-    <li><a class="dropdown-item" href="../articles/feeding_kernels.html">Feeding kernels from stomach distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/PPMR_distributions.html">Predator/prey mass ratio distributions from stomach data</a></li>
-    <li><a class="dropdown-item" href="../articles/size_selectivity.html">Prey size selectivity</a></li>
-  </ul>
-</li>
+<li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -68,8 +60,380 @@
 
     
     
-
-  </main>
+<p><code>mizerStomach</code> uses stomach-content observations to
+estimate how a predator’s prey are distributed over body size. It works
+on the log predator/prey mass ratio</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>w</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi></mrow></msub><msub><mi>w</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>y</mi></mrow></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+l = \log\left(\frac{w_{pred}}{w_{prey}}\right),
+</annotation></semantics></math></p>
+<p>fits a probability distribution to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>,
+and can translate that distribution into feeding-kernel parameters for a
+<a href="https://sizespectrum.org/mizer/" class="external-link">mizer</a> model.</p>
+<p>This vignette introduces the usual workflow:</p>
+<ol style="list-style-type: decimal">
+<li>prepare and check stomach-content data;</li>
+<li>assess whether log PPMR is reasonably independent of predator
+size;</li>
+<li>choose a weighting and fit a distribution;</li>
+<li>inspect the fitted number and biomass distributions; and</li>
+<li>transfer the fit to a mizer model.</li>
+</ol>
+<p>For more depth, read <code><a href="../articles/density_functions.html">vignette("density_functions")</a></code> for
+weighting theory, <code><a href="../articles/PPMR_distributions.html">vignette("PPMR_distributions")</a></code> for fit
+diagnostics, and <code><a href="../articles/feeding_kernels.html">vignette("feeding_kernels")</a></code> for the
+stomach-to-kernel assumptions and derivation.</p>
+<div class="section level2">
+<h2 id="set-up">Set up<a class="anchor" aria-label="anchor" href="#set-up"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://gustavdelius.github.io/mizerStomach/">mizerStomach</a></span><span class="op">)</span></span></code></pre></div>
+<p>The package includes <code>barnes_data</code>, a set of individual
+predator/prey body-mass observations for 12 predator species.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">barnes_data</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 5</span></span></span>
+<span><span class="co">#&gt;   species               w_pred w_prey n_prey log_ppmr</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Atlantic bluefin tuna  <span style="text-decoration: underline;">61</span>666   3.51      1     9.77</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Atlantic bluefin tuna  <span style="text-decoration: underline;">61</span>666   3.51      1     9.77</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Atlantic bluefin tuna  <span style="text-decoration: underline;">61</span>666   3.51      1     9.77</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Atlantic bluefin tuna  <span style="text-decoration: underline;">61</span>666   4.63      1     9.50</span></span></code></pre></div>
+<p>Your own data can aggregate several identical prey observations in
+one row. It must contain these columns:</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Column</th>
+<th align="left">Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>species</code></td>
+<td align="left">Predator species name</td>
+</tr>
+<tr class="even">
+<td align="left"><code>w_pred</code></td>
+<td align="left">Predator body mass</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>w_prey</code></td>
+<td align="left">Body mass of one prey individual, in the same unit as
+<code>w_pred</code>
+</td>
+</tr>
+<tr class="even">
+<td align="left"><code>n_prey</code></td>
+<td align="left">Number or frequency of prey represented by the row</td>
+</tr>
+</tbody>
+</table>
+<p>Predator and prey masses may use any unit as long as they use the
+<em>same</em> unit. The examples use grams. Prey identity is not used:
+the fitted distribution summarizes prey sizes for each predator
+species.</p>
+</div>
+<div class="section level2">
+<h2 id="validate-the-observations">Validate the observations<a class="anchor" aria-label="anchor" href="#validate-the-observations"></a>
+</h2>
+<p><code><a href="../reference/validate_ppmr_data.html">validate_ppmr_data()</a></code> checks the required columns and
+adds <code>log_ppmr</code> when it is missing.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cod_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/validate_ppmr_data.html">validate_ppmr_data</a></span><span class="op">(</span><span class="va">barnes_data</span>, species <span class="op">=</span> <span class="st">"Atlantic cod"</span><span class="op">)</span></span>
+<span><span class="va">cod_data</span> <span class="op">&lt;-</span> <span class="va">cod_data</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"species"</span>, <span class="st">"w_pred"</span>, <span class="st">"w_prey"</span>, <span class="st">"n_prey"</span>, <span class="st">"log_ppmr"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cod_data</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 5</span></span></span>
+<span><span class="co">#&gt;   species      w_pred     w_prey n_prey log_ppmr</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Atlantic cod 0.015<span style="text-decoration: underline;">4</span> 0.000<span style="text-decoration: underline;">002</span>70      1     8.65</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Atlantic cod 0.050<span style="text-decoration: underline;">8</span> 0.000<span style="text-decoration: underline;">006</span>39      1     8.98</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Atlantic cod 0.094<span style="text-decoration: underline;">0</span> 0.000<span style="text-decoration: underline;">013</span>8       1     8.83</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Atlantic cod 0.154  0.000<span style="text-decoration: underline;">015</span>9       1     9.17</span></span></code></pre></div>
+<p>If a <code>log_ppmr</code> column is already present, the function
+checks it against the two mass columns. It warns about disagreement and
+about prey that are heavier than their predator. Before fitting, you
+should also deal explicitly with non-positive or non-finite masses,
+missing counts, and any sampling artifacts specific to your data source.
+Validation supplies a consistent format; it does not decide which
+observations are biologically credible.</p>
+</div>
+<div class="section level2">
+<h2 id="check-the-predator-size-assumption">Check the predator-size assumption<a class="anchor" aria-label="anchor" href="#check-the-predator-size-assumption"></a>
+</h2>
+<p>The package fits one marginal log-PPMR distribution per predator
+species. This is most useful when that distribution does not change
+strongly with predator size. <code><a href="../reference/plot_ppmr_violins.html">plot_ppmr_violins()</a></code> divides
+the selected observations into ten approximately equally populated
+predator-mass classes.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_ppmr_violins.html">plot_ppmr_violins</a></span><span class="op">(</span><span class="va">barnes_data</span>, <span class="st">"Atlantic cod"</span>, power <span class="op">=</span> <span class="fl">2</span> <span class="op">/</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: `quantiles` for weighted data is not implemented.</span></span>
+<span><span class="co">#&gt; `quantiles` for weighted data is not implemented.</span></span>
+<span><span class="co">#&gt; `quantiles` for weighted data is not implemented.</span></span>
+<span><span class="co">#&gt; `quantiles` for weighted data is not implemented.</span></span>
+<span><span class="co">#&gt; `quantiles` for weighted data is not implemented.</span></span>
+<span><span class="co">#&gt; `quantiles` for weighted data is not implemented.</span></span>
+<span><span class="co">#&gt; `quantiles` for weighted data is not implemented.</span></span>
+<span><span class="co">#&gt; `quantiles` for weighted data is not implemented.</span></span>
+<span><span class="co">#&gt; `quantiles` for weighted data is not implemented.</span></span>
+<span><span class="co">#&gt; `quantiles` for weighted data is not implemented.</span></span></code></pre></div>
+<p><img src="mizerStomach_files/figure-html/violins-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>The small random perturbation used to separate tied predator masses
+is why the example sets a seed. A systematic shift in the violin
+distributions suggests that a single species-level fit is hiding size
+dependence. In that case, consider fitting a restricted predator-size
+range with <code>min_w_pred</code>, fitting separate groups, or using a
+model that represents the dependence directly.</p>
+<p>Other assumptions also matter. The stomach sample should represent
+the place, season, and predator population for which the kernel will be
+used, and the smallest and largest prey can be especially sensitive to
+identification and sampling limits.</p>
+</div>
+<div class="section level2">
+<h2 id="weight-the-prey-observations">Weight the prey observations<a class="anchor" aria-label="anchor" href="#weight-the-prey-observations"></a>
+</h2>
+<p>For <code><a href="../reference/fit_log_ppmr.html">fit_log_ppmr()</a></code>, row
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+receives weight</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>y</mi><mo>,</mo><mi>i</mi></mrow></msub><mspace width="0.167em"></mspace><msubsup><mi>w</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>y</mi><mo>,</mo><mi>i</mi></mrow><mi>q</mi></msubsup><mo>,</mo></mrow><annotation encoding="application/x-tex">
+n_{prey,i}\,w_{prey,i}^{q},
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+is the <code>power</code> argument. Useful choices include:</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th align="left"><code>power</code></th>
+<th align="left">Distribution emphasized</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>0</code></td>
+<td align="left">Number of prey individuals in stomachs</td>
+</tr>
+<tr class="even">
+<td align="left"><code>2/3</code></td>
+<td align="left">Diet biomass under the package’s surface-area scaling
+assumption for digestion</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>1</code></td>
+<td align="left">Prey biomass in stomachs</td>
+</tr>
+<tr class="even">
+<td align="left"><code>lambda - 4/3</code></td>
+<td align="left">Feeding-kernel representation used for a mizer model
+with resource exponent <code>lambda</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The best choice depends on the question and on which part of the
+observed distribution is reliable. Large numbers of tiny prey can
+dominate a number fit while contributing little biomass. Conversely, a
+few large prey can dominate a biomass fit.</p>
+<p>A fit stores its exponent in the <code>power</code> column.
+<code><a href="../reference/transform_fit.html">transform_fit()</a></code> can analytically express each supported
+fitted family at another exponent. It does this by multiplying the
+fitted density by the appropriate exponential function of log PPMR and
+renormalizing; it does <em>not</em> return to the observations. A direct
+fit at the target power can therefore differ when the chosen family is
+only an approximation to the data, or when PPMR depends on predator
+size.</p>
+</div>
+<div class="section level2">
+<h2 id="fit-a-distribution">Fit a distribution<a class="anchor" aria-label="anchor" href="#fit-a-distribution"></a>
+</h2>
+<p>We start with a normal distribution at <code>power = 2/3</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cod_normal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_log_ppmr.html">fit_log_ppmr</a></span><span class="op">(</span></span>
+<span>  <span class="va">barnes_data</span>,</span>
+<span>  species <span class="op">=</span> <span class="st">"Atlantic cod"</span>,</span>
+<span>  distribution <span class="op">=</span> <span class="st">"normal"</span>,</span>
+<span>  power <span class="op">=</span> <span class="fl">2</span> <span class="op">/</span> <span class="fl">3</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">cod_normal</span></span>
+<span><span class="co">#&gt;                  mean       sd      species distribution     power min_w_pred</span></span>
+<span><span class="co">#&gt; Atlantic cod 3.443057 1.276434 Atlantic cod       normal 0.6666667          0</span></span></code></pre></div>
+<p>For the normal family, the estimate is particularly transparent:
+<code>mean</code> is the weighted mean of <code>log_ppmr</code>, and
+<code>sd</code> is the weighted maximum-likelihood standard deviation.
+The weights are the expression above, and multiplying all of them by a
+common constant leaves the fit unchanged.</p>
+<p>The normal distribution is convenient but is symmetric and has no
+explicit lower or upper prey-size boundary. A smoothly truncated
+exponential is often a more flexible description of a feeding range.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cod_truncated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_log_ppmr.html">fit_log_ppmr</a></span><span class="op">(</span></span>
+<span>  <span class="va">barnes_data</span>,</span>
+<span>  species <span class="op">=</span> <span class="st">"Atlantic cod"</span>,</span>
+<span>  distribution <span class="op">=</span> <span class="st">"trunc_exp"</span>,</span>
+<span>  power <span class="op">=</span> <span class="fl">2</span> <span class="op">/</span> <span class="fl">3</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">cod_truncated</span></span>
+<span><span class="co">#&gt;                   alpha      ll    ul       lr       ur      species</span></span>
+<span><span class="co">#&gt; Atlantic cod -0.9333927 2.79338 2.777 22.28715 19.99663 Atlantic cod</span></span>
+<span><span class="co">#&gt;              distribution     power min_w_pred</span></span>
+<span><span class="co">#&gt; Atlantic cod    trunc_exp 0.6666667          0</span></span></code></pre></div>
+<p>This fit minimizes a weighted negative log-likelihood.
+<code>alpha</code> controls the exponential slope, <code>ll</code> and
+<code>lr</code> locate the left and right logistic cutoffs, and
+<code>ul</code> and <code>ur</code> control how sharp those cutoffs are.
+It is a nonlinear five-parameter optimization, so a fit should always be
+checked visually. A previous fit can be supplied through
+<code>fits</code> to reuse its parameters as starting values:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cod_truncated</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_log_ppmr.html">fit_log_ppmr</a></span><span class="op">(</span></span>
+<span>  <span class="va">barnes_data</span>,</span>
+<span>  distribution <span class="op">=</span> <span class="st">"trunc_exp"</span>,</span>
+<span>  fits <span class="op">=</span> <span class="va">cod_truncated</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>The third family, <code>distribution = "gauss_mix"</code>, fits a
+two-component normal mixture with weighted EM updates. It can represent
+multimodality but is not currently supported by
+<code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code>. Mixture fits can be sensitive to
+initialization and nearly degenerate components, so use them for
+exploratory diagnosis and check the result carefully.</p>
+</div>
+<div class="section level2">
+<h2 id="diagnose-a-fit">Diagnose a fit<a class="anchor" aria-label="anchor" href="#diagnose-a-fit"></a>
+</h2>
+<p><code><a href="../reference/plot_log_ppmr_fit.html">plot_log_ppmr_fit()</a></code> shows both views of the same fit.
+Blue compares the observed and fitted number distributions
+(<code>power = 0</code>); red compares the observed and fitted biomass
+distributions (<code>power = 1</code>). The stored fit is transformed to
+both powers automatically.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_log_ppmr_fit.html">plot_log_ppmr_fit</a></span><span class="op">(</span><span class="va">barnes_data</span>, <span class="va">cod_normal</span>, type <span class="op">=</span> <span class="st">"histogram"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="mizerStomach_files/figure-html/normal-diagnostic-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_log_ppmr_fit.html">plot_log_ppmr_fit</a></span><span class="op">(</span><span class="va">barnes_data</span>, <span class="va">cod_truncated</span>, type <span class="op">=</span> <span class="st">"histogram"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="mizerStomach_files/figure-html/truncated-diagnostic-1.png" class="r-plt" alt="" width="672" style="display: block; margin: auto;"></p>
+<p>The empirical curves or bars are descriptive diagnostics, not formal
+goodness-of-fit tests. Look especially at the tails: the number
+distribution contains most information about small prey (large PPMR),
+whereas the biomass distribution highlights large prey (small PPMR). A
+family that looks adequate at the fitted power can still extrapolate
+poorly when transformed to another power.</p>
+<p>Use <code><a href="../reference/get_density.html">get_density()</a></code> when numerical density values are more
+useful than a plot.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">log_ppmr_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">12</span>, length.out <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  log_ppmr <span class="op">=</span> <span class="va">log_ppmr_grid</span>,</span>
+<span>  density <span class="op">=</span> <span class="fu"><a href="../reference/get_density.html">get_density</a></span><span class="op">(</span><span class="va">log_ppmr_grid</span>, <span class="va">cod_truncated</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;   log_ppmr      density</span></span>
+<span><span class="co">#&gt; 1        2 0.1608592318</span></span>
+<span><span class="co">#&gt; 2        4 0.2415961441</span></span>
+<span><span class="co">#&gt; 3        6 0.0386598929</span></span>
+<span><span class="co">#&gt; 4        8 0.0059783967</span></span>
+<span><span class="co">#&gt; 5       10 0.0009243795</span></span>
+<span><span class="co">#&gt; 6       12 0.0001429275</span></span></code></pre></div>
+<p>Multiple species can be fitted in one call. They are fitted
+independently and returned as one row per species.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tuna_fits</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_log_ppmr.html">fit_log_ppmr</a></span><span class="op">(</span></span>
+<span>  <span class="va">barnes_data</span>,</span>
+<span>  species <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Albacore"</span>, <span class="st">"Yellowfin tuna"</span><span class="op">)</span>,</span>
+<span>  distribution <span class="op">=</span> <span class="st">"normal"</span>,</span>
+<span>  power <span class="op">=</span> <span class="fl">2</span> <span class="op">/</span> <span class="fl">3</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">tuna_fits</span></span>
+<span><span class="co">#&gt;                    mean       sd        species distribution     power</span></span>
+<span><span class="co">#&gt; Albacore       7.738940 2.060902       Albacore       normal 0.6666667</span></span>
+<span><span class="co">#&gt; Yellowfin tuna 8.215865 1.735238 Yellowfin tuna       normal 0.6666667</span></span>
+<span><span class="co">#&gt;                min_w_pred</span></span>
+<span><span class="co">#&gt; Albacore                0</span></span>
+<span><span class="co">#&gt; Yellowfin tuna          0</span></span></code></pre></div>
+<p>For interactive tuning, <code><a href="../reference/fit_shiny.html">fit_shiny()</a></code> provides parameter
+sliders, automatic refitting, undo/reset controls, and the same
+diagnostic plot. It opens a browser and blocks the R session, so this
+example is not run while building the vignette.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tuned_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_shiny.html">fit_shiny</a></span><span class="op">(</span><span class="va">barnes_data</span>, fits <span class="op">=</span> <span class="va">cod_truncated</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="put-a-fit-into-a-mizer-model">Put a fit into a mizer model<a class="anchor" aria-label="anchor" href="#put-a-fit-into-a-mizer-model"></a>
+</h2>
+<p><code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code> supports normal and
+truncated-exponential fits. It first transforms the fit from its
+recorded <code>power</code> to the exponent required by the model,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mrow><mi>m</mi><mi>i</mi><mi>z</mi><mi>e</mi><mi>r</mi></mrow></msub><mo>=</mo><mi>λ</mi><mo>−</mo><mfrac><mn>4</mn><mn>3</mn></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+q_{mizer} = \lambda - \frac{4}{3},
+</annotation></semantics></math></p>
+<p>where <code>lambda</code> is the resource-spectrum exponent in the
+<code>MizerParams</code> object. It then maps a normal distribution to
+mizer’s <code>"lognormal"</code> feeding kernel, or a truncated
+exponential to its <code>"power_law"</code> kernel.</p>
+<p>Species names in the fit and model must agree. The Barnes data call
+the species <code>"Atlantic cod"</code>, while
+<code><a href="https://sizespectrum.org/mizer/reference/NS_params.html" class="external-link">mizer::NS_params</a></code> calls it <code>"Cod"</code>, so we rename
+the fit row before transferring it.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu">mizer</span><span class="fu">::</span><span class="va"><a href="https://sizespectrum.org/mizer/reference/NS_params.html" class="external-link">NS_params</a></span></span>
+<span></span>
+<span><span class="va">model_cod_fit</span> <span class="op">&lt;-</span> <span class="va">cod_normal</span></span>
+<span><span class="va">model_cod_fit</span><span class="op">$</span><span class="va">species</span> <span class="op">&lt;-</span> <span class="st">"Cod"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">model_cod_fit</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"Cod"</span></span>
+<span></span>
+<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_kernel_params.html">set_kernel_params</a></span><span class="op">(</span><span class="va">params</span>, <span class="va">model_cod_fit</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span></span>
+<span>  <span class="fu">mizer</span><span class="fu">::</span><span class="fu"><a href="https://sizespectrum.org/mizer/reference/species_params.html" class="external-link">species_params</a></span><span class="op">(</span><span class="va">params</span><span class="op">)</span>,</span>
+<span>  <span class="va">species</span> <span class="op">==</span> <span class="st">"Cod"</span>,</span>
+<span>  select <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">species</span>, <span class="va">pred_kernel_type</span>, <span class="va">beta</span>, <span class="va">sigma</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; An object of class "species_params" containing parameters for 1 species:</span></span>
+<span><span class="co">#&gt;  species pred_kernel_type     beta    sigma</span></span>
+<span><span class="co">#&gt;      Cod        lognormal 25.17419 1.276434</span></span></code></pre></div>
+<p>Only species represented in the fit are changed. Assign the return
+value, as above, because the input <code>params</code> object is not
+modified in place.</p>
+<p><code><a href="../reference/extract_fit.html">extract_fit()</a></code> performs the reverse conversion. It is
+useful for inspecting existing kernels with the same plotting and
+transformation tools, or as the starting point for manual changes.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">extracted</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_fit.html">extract_fit</a></span><span class="op">(</span><span class="va">params</span><span class="op">)</span></span>
+<span><span class="va">extracted</span><span class="op">[</span><span class="st">"Cod"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"species"</span>, <span class="st">"distribution"</span>, <span class="st">"power"</span>, <span class="st">"mean"</span>, <span class="st">"sd"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;     species distribution power     mean       sd</span></span>
+<span><span class="co">#&gt; Cod     Cod       normal     0 4.529247 1.276434</span></span></code></pre></div>
+<p>The extracted distributions are returned at <code>power = 0</code>,
+so they describe the number-weighted log-PPMR representation implied by
+the current model kernels.</p>
+</div>
+<div class="section level2">
+<h2 id="where-to-go-next">Where to go next<a class="anchor" aria-label="anchor" href="#where-to-go-next"></a>
+</h2>
+<p>The other vignettes develop the assumptions behind this workflow:</p>
+<ul>
+<li>
+<code><a href="../articles/density_functions.html">vignette("density_functions", package = "mizerStomach")</a></code>
+derives the relationships among number, stomach biomass, diet biomass,
+and other log-PPMR weightings.</li>
+<li>
+<code><a href="../articles/PPMR_distributions.html">vignette("PPMR_distributions", package = "mizerStomach")</a></code>
+discusses data limitations, predator-size dependence, family choice, and
+fit diagnostics.</li>
+<li>
+<code><a href="../articles/feeding_kernels.html">vignette("feeding_kernels", package = "mizerStomach")</a></code>
+derives the transformation from a stomach distribution to a mizer
+feeding kernel and explains its assumptions.</li>
+</ul>
+<p>The practical rule is simple: validate the measurements, inspect the
+predator-size dependence, fit at a weighting relevant to the biological
+question, and judge both the number and biomass implications before
+updating a model.</p>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

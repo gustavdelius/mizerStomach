@@ -24,6 +24,23 @@ test_that("transform_gaussian_mixture updates means and reweights p", {
     expect_true(all(result$p > 0))
 })
 
+test_that("transform_gaussian_mixture equals numerical exponential tilt", {
+    fit <- list(mean = c(3, 7), sd = c(1, 1.5), p = c(0.4, 0.6))
+    power <- 0.7
+    transformed <- transform_gaussian_mixture(fit, power = power)
+    grid <- seq(-5, 18, length.out = 20001)
+    original_density <- fit$p[1] * dnorm(grid, fit$mean[1], fit$sd[1]) +
+        fit$p[2] * dnorm(grid, fit$mean[2], fit$sd[2])
+    tilted_density <- exp(-power * grid) * original_density
+    dx <- grid[2] - grid[1]
+    tilted_density <- tilted_density / sum(tilted_density * dx)
+    transformed_density <-
+        transformed$p[1] * dnorm(grid, transformed$mean[1], transformed$sd[1]) +
+        transformed$p[2] * dnorm(grid, transformed$mean[2], transformed$sd[2])
+
+    expect_equal(transformed_density, tilted_density, tolerance = 1e-7)
+})
+
 test_that("transform_fit dispatches correctly for normal", {
     fit_df <- data.frame(species = "A", distribution = "normal",
                          mean = 5, sd = 2, power = 0,

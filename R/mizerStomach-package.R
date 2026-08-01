@@ -21,8 +21,17 @@
 #' [transform_fit()] uses family-specific parameter updates to express a fit at
 #' another weighting without fitting the raw observations again.
 #'
-#' See `vignette("mizerStomach", package = "mizerStomach")` for a complete
-#' introduction.
+#' @section Vignettes:
+#' Read the package articles in this order:
+#'
+#' * `vignette("mizerStomach", package = "mizerStomach")` gives a complete
+#'   introductory workflow.
+#' * `vignette("density_functions", package = "mizerStomach")` explains
+#'   weighting and density transformations.
+#' * `vignette("PPMR_distributions", package = "mizerStomach")` covers data
+#'   limitations, family choice, and fit diagnostics.
+#' * `vignette("feeding_kernels", package = "mizerStomach")` derives and
+#'   demonstrates the mizer feeding-kernel conversion.
 #'
 #' @import mizer mizerExperimental dplyr ggplot2
 #' @importFrom stats weighted.mean dnorm integrate rnorm sd setNames

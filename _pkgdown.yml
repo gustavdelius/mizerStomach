@@ -1,22 +1,37 @@
-url: ~
+url: https://gustavdelius.github.io/mizerStomach/
 template:
   bootstrap: 5
 
+articles:
+- title: Start here
+  contents:
+  - mizerStomach
+- title: Learn more
+  contents:
+  - density_functions
+  - PPMR_distributions
+  - feeding_kernels
+
 reference:
-- title: Fitting
+- title: Fit and transform distributions
 - contents:
   - fit_log_ppmr
   - transform_fit
   - get_density
-- title: Plotting
+- title: Diagnose and tune fits
   contents:
   - starts_with("plot")
+  - fit_shiny
+- title: Use fits in mizer
+  contents:
+  - set_kernel_params
+  - extract_fit
 - title: Data
   contents:
   - barnes_data
 - title: Validation
   contents:
   - has_concept("validation functions")
-- title: Internals
+- title: Low-level functions
   contents:
   - has_keyword("internal")

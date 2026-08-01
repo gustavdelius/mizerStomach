@@ -9,13 +9,15 @@ Description: More about what it does (maybe more than one line)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/gustavdelius/mizerStomach
+URL: https://gustavdelius.github.io/mizerStomach/,
+    https://github.com/gustavdelius/mizerStomach
 BugReports: https://github.com/gustavdelius/mizerStomach/issues
 Imports:
     bbmle,
     dplyr,
     ggplot2,
     Hmisc,
+    later,
     mizer,
     mizerExperimental,
     shiny
@@ -37,6 +39,6 @@ Collate:
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 Depends: 
-    R (>= 3.5)
+    R (>= 4.1)
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0

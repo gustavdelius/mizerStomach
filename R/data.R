@@ -26,7 +26,9 @@
 #'   *Ecology*, 89(3), 881. \doi{10.1890/07-1551.1}
 #'
 #' @seealso [validate_ppmr_data()] for validating similar datasets,
-#'   \code{vignette("PPMR_distributions")} for analysis using this data.
+#'   `vignette("mizerStomach", package = "mizerStomach")` for an introduction,
+#'   and `vignette("PPMR_distributions", package = "mizerStomach")` for a
+#'   diagnostic analysis using this data.
 #'
 #' @examples
 #' head(barnes_data)
