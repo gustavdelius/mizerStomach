@@ -32,6 +32,7 @@
 <li class="nav-item"><a class="nav-link" href="../articles/mizerStomach.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -72,31 +73,31 @@ a mizer feeding kernel.</p>
 <h2 id="from-prey-mass-to-log-ppmr">From prey mass to log PPMR<a class="anchor" aria-label="anchor" href="#from-prey-mass-to-log-ppmr"></a>
 </h2>
 <p>Let
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">w'</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>w</mi><mo>′</mo></msup><annotation encoding="application/x-tex">w'</annotation></semantics></math>
 be predator mass and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
 prey mass. Define the predator/prey mass ratio and its logarithm by</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mfrac><mrow><mi>w</mi><mi>′</mi></mrow><mi>w</mi></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mi>l</mi><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>r</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>w</mi><mi>′</mi></mrow><mi>w</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mfrac><msup><mi>w</mi><mo>′</mo></msup><mi>w</mi></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mi>l</mi><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msup><mi>w</mi><mo>′</mo></msup><mi>w</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
 r = \frac{w'}{w},
 \qquad
 l = \log(r) = \log\left(\frac{w'}{w}\right).
 </annotation></semantics></math></p>
 <p>Suppose
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_w(w\mid w')</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>w</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>w</mi><mo>∣</mo><msup><mi>w</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f_w(w\mid w')</annotation></semantics></math>
 is the probability density of prey mass in stomachs of predators of mass
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">w'</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>w</mi><mo>′</mo></msup><annotation encoding="application/x-tex">w'</annotation></semantics></math>.
 Since
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>=</mo><mi>w</mi><mi>′</mi><msup><mi>e</mi><mrow><mo>−</mo><mi>l</mi></mrow></msup></mrow><annotation encoding="application/x-tex">w = w'e^{-l}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>=</mo><msup><mi>w</mi><mo>′</mo></msup><msup><mi>e</mi><mrow><mi>−</mi><mi>l</mi></mrow></msup></mrow><annotation encoding="application/x-tex">w = w'e^{-l}</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mi>d</mi><mi>w</mi><mi>/</mi><mi>d</mi><mi>l</mi><mo stretchy="true" form="postfix">|</mo></mrow><mo>=</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">|dw/dl| = w</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">|</mo><mi>d</mi><mi>w</mi><mi>/</mi><mi>d</mi><mi>l</mi><mo stretchy="false" form="prefix">|</mo><mo>=</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">|dw/dl| = w</annotation></semantics></math>,
 the density on the log-PPMR scale is</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>w</mi><msub><mi>f</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>∣</mo><msup><mi>w</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>w</mi><msub><mi>f</mi><mi>w</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>w</mi><mo>∣</mo><msup><mi>w</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 f_0(l\mid w') = w f_w(w\mid w').
 </annotation></semantics></math></p>
 <p>The subscript zero anticipates that this density gives equal weight
 to every prey individual. Similarly, because
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>=</mo><mi>w</mi><mi>′</mi><mi>/</mi><mi>r</mi></mrow><annotation encoding="application/x-tex">w=w'/r</annotation></semantics></math>,</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>r</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>r</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mrow><mi>w</mi><mi>′</mi></mrow><msup><mi>r</mi><mn>2</mn></msup></mfrac><msub><mi>f</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>w</mi><mi>′</mi></mrow><mi>r</mi></mfrac><mspace width="0.167em"></mspace><mo stretchy="true" form="infix">|</mo><mspace width="0.167em"></mspace><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>=</mo><msup><mi>w</mi><mo>′</mo></msup><mi>/</mi><mi>r</mi></mrow><annotation encoding="application/x-tex">w=w'/r</annotation></semantics></math>,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo>∣</mo><msup><mi>w</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><msup><mi>w</mi><mo>′</mo></msup><msup><mi>r</mi><mn>2</mn></msup></mfrac><msub><mi>f</mi><mi>w</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msup><mi>w</mi><mo>′</mo></msup><mi>r</mi></mfrac><mspace width="0.167em"></mspace><mo stretchy="true" form="infix">|</mo><mspace width="0.167em"></mspace><msup><mi>w</mi><mo>′</mo></msup><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
 f_r(r\mid w') =
 \frac{w'}{r^2}f_w\left(\frac{w'}{r}\,\middle|\,w'\right).
 </annotation></semantics></math></p>
@@ -119,12 +120,12 @@ weight</p>
 n_{prey,i}w_{prey,i}^{q}.
 </annotation></semantics></math></p>
 <p>For predators of a fixed mass
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">w'</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>w</mi><mi>q</mi></msup><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>q</mi></msup><msup><mi>e</mi><mrow><mo>−</mo><mi>q</mi><mi>l</mi></mrow></msup></mrow><annotation encoding="application/x-tex">w^q=(w')^q e^{-ql}</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>w</mi><mo>′</mo></msup><annotation encoding="application/x-tex">w'</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>w</mi><mi>q</mi></msup><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msup><mi>w</mi><mo>′</mo></msup><msup><mo stretchy="false" form="postfix">)</mo><mi>q</mi></msup><msup><mi>e</mi><mrow><mi>−</mi><mi>q</mi><mi>l</mi></mrow></msup></mrow><annotation encoding="application/x-tex">w^q=(w')^q e^{-ql}</annotation></semantics></math>.
 The factor
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>q</mi></msup><annotation encoding="application/x-tex">(w')^q</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>w</mi><mo>′</mo></msup><msup><mo stretchy="false" form="postfix">)</mo><mi>q</mi></msup></mrow><annotation encoding="application/x-tex">(w')^q</annotation></semantics></math>
 disappears when the conditional density is normalized, giving</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>q</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mrow><msup><mi>e</mi><mrow><mo>−</mo><mi>q</mi><mi>l</mi></mrow></msup><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mo>∫</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>q</mi><mover><mi>l</mi><mo accent="true">̃</mo></mover></mrow></msup><msub><mi>f</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>l</mi><mo accent="true">̃</mo></mover><mo>∣</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mover><mi>l</mi><mo accent="true">̃</mo></mover></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>q</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>∣</mo><msup><mi>w</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mfrac><mrow><msup><mi>e</mi><mrow><mi>−</mi><mi>q</mi><mi>l</mi></mrow></msup><msub><mi>f</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>∣</mo><msup><mi>w</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mo>∫</mo><msup><mi>e</mi><mrow><mi>−</mi><mi>q</mi><mover><mi>l</mi><mo accent="true">̃</mo></mover></mrow></msup><msub><mi>f</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mover><mi>l</mi><mo accent="true">̃</mo></mover><mo>∣</mo><msup><mi>w</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo><mi>d</mi><mover><mi>l</mi><mo accent="true">̃</mo></mover></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
 f_q(l\mid w') =
 \frac{e^{-ql}f_0(l\mid w')}
 {\int e^{-q\tilde l}f_0(\tilde l\mid w')d\tilde l}.
@@ -134,7 +135,7 @@ f_q(l\mid w') =
 changing to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mn>1</mn></msub><annotation encoding="application/x-tex">q_1</annotation></semantics></math>
 gives</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><msub><mi>q</mi><mn>1</mn></msub></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∝</mo><msup><mi>e</mi><mrow><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>q</mi><mn>1</mn></msub><mo>−</mo><msub><mi>q</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>l</mi></mrow></msup><msub><mi>f</mi><msub><mi>q</mi><mn>0</mn></msub></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><msub><mi>q</mi><mn>1</mn></msub></msub><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo stretchy="false" form="postfix">)</mo><mo>∝</mo><msup><mi>e</mi><mrow><mi>−</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>q</mi><mn>1</mn></msub><mo>−</mo><msub><mi>q</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>l</mi></mrow></msup><msub><mi>f</mi><msub><mi>q</mi><mn>0</mn></msub></msub><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 f_{q_1}(l) \propto
 e^{-(q_1-q_0)l}f_{q_0}(l).
 </annotation></semantics></math></p>
@@ -198,13 +199,14 @@ Diet biomass is ingestion rate times
 so it is proportional to observed stomach numbers times
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>w</mi><mrow><mn>2</mn><mi>/</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">w^{2/3}</annotation></semantics></math>.
 This motivates <code>power = 2 / 3</code>; it is an assumption about
-digestion, not a universal constant.</p>
+digestion, not a universal constant <span class="citation">(Jobling
+1981; Bromley 1994; Andersen 1999)</span>.</p>
 </div>
 <div class="section level3">
 <h3 id="pooling-predator-sizes">Pooling predator sizes<a class="anchor" aria-label="anchor" href="#pooling-predator-sizes"></a>
 </h3>
 <p>The cancellation of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>q</mi></msup><annotation encoding="application/x-tex">(w')^q</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>w</mi><mo>′</mo></msup><msup><mo stretchy="false" form="postfix">)</mo><mi>q</mi></msup></mrow><annotation encoding="application/x-tex">(w')^q</annotation></semantics></math>
 above occurs within a fixed predator mass. Transforming a pooled
 species-level fit assumes that the conditional log-PPMR distribution is
 adequately independent of predator size. If that assumption does not
@@ -227,7 +229,7 @@ families are closed under exponential tilting. Let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
 and standard deviation
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>,</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>e</mi><mrow><mo>−</mo><mi>a</mi><mi>l</mi></mrow></msup><mo>exp</mo><mrow><mo stretchy="true" form="prefix">[</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo>−</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow><mo>∝</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">[</mo><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>−</mo><mi>a</mi><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>e</mi><mrow><mi>−</mi><mi>a</mi><mi>l</mi></mrow></msup><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">[</mo><mi>−</mi><mfrac><mrow><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>−</mo><mi>μ</mi><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow><mo>∝</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">[</mo><mi>−</mi><mfrac><mrow><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>−</mo><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>−</mo><mi>a</mi><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
 e^{-al}\exp\left[-\frac{(l-\mu)^2}{2\sigma^2}\right]
 \propto
 \exp\left[-\frac{(l-(\mu-a\sigma^2))^2}{2\sigma^2}\right].
@@ -254,13 +256,13 @@ and the standard deviation is unchanged.</p>
 <h3 id="smoothly-truncated-exponential">Smoothly truncated exponential<a class="anchor" aria-label="anchor" href="#smoothly-truncated-exponential"></a>
 </h3>
 <p>The unnormalized density used by <code><a href="../reference/dtexp.html">dtexp()</a></code> is</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∝</mo><mfrac><msup><mi>e</mi><mrow><mi>α</mi><mi>l</mi></mrow></msup><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><msub><mi>u</mi><mi>l</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>l</mi><mi>l</mi></msub><mo>−</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><msub><mi>u</mi><mi>r</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo>−</mo><msub><mi>l</mi><mi>r</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo stretchy="false" form="postfix">)</mo><mo>∝</mo><mfrac><msup><mi>e</mi><mrow><mi>α</mi><mi>l</mi></mrow></msup><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><msub><mi>u</mi><mi>l</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>l</mi><mi>l</mi></msub><mo>−</mo><mi>l</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><msub><mi>u</mi><mi>r</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>−</mo><msub><mi>l</mi><mi>r</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
 f(l) \propto
 \frac{e^{\alpha l}}
 {(1+e^{u_l(l_l-l)})(1+e^{u_r(l-l_r)})}.
 </annotation></semantics></math></p>
 <p>Multiplication by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>e</mi><mrow><mo>−</mo><mi>a</mi><mi>l</mi></mrow></msup><annotation encoding="application/x-tex">e^{-al}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>e</mi><mrow><mi>−</mi><mi>a</mi><mi>l</mi></mrow></msup><annotation encoding="application/x-tex">e^{-al}</annotation></semantics></math>
 changes only the exponential slope:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>α</mi><mo accent="true">̃</mo></mover><mo>=</mo><mi>α</mi><mo>−</mo><mi>a</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \tilde\alpha=\alpha-a.
@@ -278,7 +280,7 @@ see <code><a href="../reference/dtexp.html">?dtexp</a></code> for exact evaluati
 <h3 id="gaussian-mixture">Gaussian mixture<a class="anchor" aria-label="anchor" href="#gaussian-mixture"></a>
 </h3>
 <p>For a mixture</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>k</mi></munderover><msub><mi>p</mi><mi>j</mi></msub><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo>∣</mo><msub><mi>μ</mi><mi>j</mi></msub><mo>,</mo><msub><mi>σ</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>k</mi></munderover><msub><mi>p</mi><mi>j</mi></msub><mi>𝒩</mi><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>∣</mo><msub><mi>μ</mi><mi>j</mi></msub><mo>,</mo><msub><mi>σ</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 f(l)=\sum_{j=1}^k p_j
 \mathcal N(l\mid\mu_j,\sigma_j),
 </annotation></semantics></math></p>
@@ -289,7 +291,7 @@ f(l)=\sum_{j=1}^k p_j
 \tilde\sigma_j=\sigma_j,
 </annotation></semantics></math></p>
 <p>and its unnormalized mixing weight is</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mover><mi>p</mi><mo accent="true">̃</mo></mover><mi>j</mi><mo>*</mo></msubsup><mo>=</mo><msub><mi>p</mi><mi>j</mi></msub><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mi>a</mi><msub><mi>μ</mi><mi>j</mi></msub><mo>+</mo><mfrac><mrow><msup><mi>a</mi><mn>2</mn></msup><msubsup><mi>σ</mi><mi>j</mi><mn>2</mn></msubsup></mrow><mn>2</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mover><mi>p</mi><mo accent="true">̃</mo></mover><mi>j</mi><mo>*</mo></msubsup><mo>=</mo><msub><mi>p</mi><mi>j</mi></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mi>a</mi><msub><mi>μ</mi><mi>j</mi></msub><mo>+</mo><mfrac><mrow><msup><mi>a</mi><mn>2</mn></msup><msubsup><mi>σ</mi><mi>j</mi><mn>2</mn></msubsup></mrow><mn>2</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \tilde p_j^* =
 p_j\exp\left(-a\mu_j+\frac{a^2\sigma_j^2}{2}\right).
 </annotation></semantics></math></p>
@@ -337,6 +339,27 @@ both may be inadequate.</p>
 <code><a href="../reference/get_density.html">?get_density</a></code>. For the additional assumptions that turn a
 stomach distribution into a feeding kernel, continue with
 <code><a href="../articles/feeding_kernels.html">vignette("feeding_kernels")</a></code>.</p>
+</div>
+<div class="section level2 unnumbered">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-andersen1999effects" class="csl-entry">
+Andersen, Niels G. 1999. <span>“The Effects of Predator Size,
+Temperature, and Prey Characteristics on Gastric Evacuation in
+Whiting.”</span> <em>Journal of Fish Biology</em> 54 (2): 287–301.
+</div>
+<div id="ref-bromley1994role" class="csl-entry">
+Bromley, PJ. 1994. <span>“The Role of Gastric Evacuation Experiments in
+Quantifying the Feeding Rates of Predatory Fish.”</span> <em>Reviews in
+Fish Biology and Fisheries</em> 4 (1): 36–66.
+</div>
+<div id="ref-jobling1981mathematical" class="csl-entry">
+Jobling, Malcolm. 1981. <span>“Mathematical Models of Gastric Emptying
+and the Estimation of Daily Rates of Food Consumption for Fish.”</span>
+<em>Journal of Fish Biology</em> 19 (3): 245–57.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

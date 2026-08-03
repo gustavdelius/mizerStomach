@@ -15,6 +15,7 @@ parameterize size selectivity (predation kernels).
 All development uses standard R/devtools workflows:
 
 ``` r
+
 devtools::load_all()          # Load package for interactive development
 devtools::document()          # Regenerate roxygen docs (NAMESPACE, man/)
 devtools::check()             # Full R CMD check
@@ -25,6 +26,7 @@ pkgdown::build_site()         # Build documentation website
 Run the interactive Shiny app:
 
 ``` r
+
 shiny::runApp("inst/app.R")
 ```
 
@@ -37,13 +39,13 @@ executable documentation.
 
 ### Core Modules
 
-| File            | Responsibility                                                                                                                         |
-|-----------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| `R/fit.R`       | MLE fitting of distributions to log(PPMR) data                                                                                         |
+| File | Responsibility |
+|----|----|
+| `R/fit.R` | MLE fitting of distributions to log(PPMR) data |
 | `R/densities.R` | Density functions including custom [`dtexp()`](https://gustavdelius.github.io/mizerStomach/reference/dtexp.md) (truncated exponential) |
-| `R/plot.R`      | ggplot2 visualizations of fits and PPMR violin plots                                                                                   |
-| `R/transform.R` | Transform fit parameters when changing observation weighting power                                                                     |
-| `R/validate.R`  | Input validation helpers called by all public functions                                                                                |
+| `R/plot.R` | ggplot2 visualizations of fits and PPMR violin plots |
+| `R/transform.R` | Transform fit parameters when changing observation weighting power |
+| `R/validate.R` | Input validation helpers called by all public functions |
 
 ### Three Supported Distributions
 

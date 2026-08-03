@@ -1,6 +1,7 @@
 # Weighting and log-PPMR distributions
 
 ``` r
+
 library(mizerStomach)
 ```
 
@@ -16,45 +17,62 @@ applies the same convention to a mizer feeding kernel.
 
 ## From prey mass to log PPMR
 
-Let $w\prime$ be predator mass and $w$ prey mass. Define the
+Let $`w'`$ be predator mass and $`w`$ prey mass. Define the
 predator/prey mass ratio and its logarithm by
 
-$$r = \frac{w\prime}{w},\qquad l = \log(r) = \log\left( \frac{w\prime}{w} \right).$$
+``` math
+r = \frac{w'}{w},
+\qquad
+l = \log(r) = \log\left(\frac{w'}{w}\right).
+```
 
-Suppose $f_{w}(w \mid w\prime)$ is the probability density of prey mass
-in stomachs of predators of mass $w\prime$. Since $w = w\prime e^{- l}$
-and $|dw/dl| = w$, the density on the log-PPMR scale is
+Suppose $`f_w(w\mid w')`$ is the probability density of prey mass in
+stomachs of predators of mass $`w'`$. Since $`w = w'e^{-l}`$ and
+$`|dw/dl| = w`$, the density on the log-PPMR scale is
 
-$$f_{0}(l \mid w\prime) = wf_{w}(w \mid w\prime).$$
+``` math
+f_0(l\mid w') = w f_w(w\mid w').
+```
 
 The subscript zero anticipates that this density gives equal weight to
-every prey individual. Similarly, because $w = w\prime/r$,
+every prey individual. Similarly, because $`w=w'/r`$,
 
-$$f_{r}(r \mid w\prime) = \frac{w\prime}{r^{2}}f_{w}\left( \frac{w\prime}{r}\, \middle| \, w\prime \right).$$
+``` math
+f_r(r\mid w') =
+\frac{w'}{r^2}f_w\left(\frac{w'}{r}\,\middle|\,w'\right).
+```
 
-Working with $l$ is convenient because multiplicative predator/prey
+Working with $`l`$ is convenient because multiplicative predator/prey
 ratios become additive differences and the package’s fitted families
 have simple weighting transformations on this scale.
 
 ## A family of weighted densities
 
 Rows in stomach datasets can represent more than one prey individual
-through `n_prey`. At weighting exponent $q$,
+through `n_prey`. At weighting exponent $`q`$,
 [`fit_log_ppmr()`](https://gustavdelius.github.io/mizerStomach/reference/fit_log_ppmr.md)
-gives row $i$ weight
+gives row $`i`$ weight
 
-$$n_{prey,i}w_{prey,i}^{q}.$$
+``` math
+n_{prey,i}w_{prey,i}^{q}.
+```
 
-For predators of a fixed mass $w\prime$,
-$w^{q} = (w\prime)^{q}e^{- ql}$. The factor $(w\prime)^{q}$ disappears
-when the conditional density is normalized, giving
+For predators of a fixed mass $`w'`$, $`w^q=(w')^q e^{-ql}`$. The factor
+$`(w')^q`$ disappears when the conditional density is normalized, giving
 
-$$f_{q}(l \mid w\prime) = \frac{e^{- ql}f_{0}(l \mid w\prime)}{\int e^{- q\widetilde{l}}f_{0}\left( \widetilde{l} \mid w\prime \right)d\widetilde{l}}.$$
+``` math
+f_q(l\mid w') =
+\frac{e^{-ql}f_0(l\mid w')}
+{\int e^{-q\tilde l}f_0(\tilde l\mid w')d\tilde l}.
+```
 
-More generally, if a fit currently represents exponent $q_{0}$, changing
-to $q_{1}$ gives
+More generally, if a fit currently represents exponent $`q_0`$, changing
+to $`q_1`$ gives
 
-$$f_{q_{1}}(l) \propto e^{- {(q_{1} - q_{0})}l}f_{q_{0}}(l).$$
+``` math
+f_{q_1}(l) \propto
+e^{-(q_1-q_0)l}f_{q_0}(l).
+```
 
 This is the exponential tilt implemented by
 [`transform_fit()`](https://gustavdelius.github.io/mizerStomach/reference/transform_fit.md).
@@ -63,34 +81,37 @@ observations.
 
 Several exponents have useful interpretations:
 
-| Exponent            | Interpretation                                                                                                                            |
-|:--------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
-| $q = 0$             | Number distribution of identifiable prey in stomachs                                                                                      |
-| $q = 2/3$           | Diet-biomass distribution under the digestion assumption below                                                                            |
-| $q = 1$             | Biomass distribution of identifiable prey in stomachs                                                                                     |
-| $q = \lambda - 4/3$ | Feeding-kernel representation used by [`set_kernel_params()`](https://gustavdelius.github.io/mizerStomach/reference/set_kernel_params.md) |
+| Exponent | Interpretation |
+|:---|:---|
+| $`q=0`$ | Number distribution of identifiable prey in stomachs |
+| $`q=2/3`$ | Diet-biomass distribution under the digestion assumption below |
+| $`q=1`$ | Biomass distribution of identifiable prey in stomachs |
+| $`q=\lambda-4/3`$ | Feeding-kernel representation used by [`set_kernel_params()`](https://gustavdelius.github.io/mizerStomach/reference/set_kernel_params.md) |
 
 These are different summaries of the same stomach observations, not
 competing definitions of PPMR.
 
 ### Why diet biomass corresponds to `power = 2/3`
 
-Suppose prey mass is digested at a rate proportional to $w^{2/3}$
+Suppose prey mass is digested at a rate proportional to $`w^{2/3}`$
 because the rate is controlled by surface area. If prey remains
 identifiable until a fixed fraction of its mass has been digested, its
 identifiable residence time is proportional to
 
-$$\frac{w}{w^{2/3}} = w^{1/3}.$$
+``` math
+\frac{w}{w^{2/3}} = w^{1/3}.
+```
 
-The number of prey of mass $w$ observed in stomachs is therefore
-proportional to their ingestion rate times $w^{1/3}$. Diet biomass is
-ingestion rate times $w$, so it is proportional to observed stomach
-numbers times $w^{2/3}$. This motivates `power = 2 / 3`; it is an
-assumption about digestion, not a universal constant.
+The number of prey of mass $`w`$ observed in stomachs is therefore
+proportional to their ingestion rate times $`w^{1/3}`$. Diet biomass is
+ingestion rate times $`w`$, so it is proportional to observed stomach
+numbers times $`w^{2/3}`$. This motivates `power = 2 / 3`; it is an
+assumption about digestion, not a universal constant (Jobling 1981;
+Bromley 1994; Andersen 1999).
 
 ### Pooling predator sizes
 
-The cancellation of $(w\prime)^{q}$ above occurs within a fixed predator
+The cancellation of $`(w')^q`$ above occurs within a fixed predator
 mass. Transforming a pooled species-level fit assumes that the
 conditional log-PPMR distribution is adequately independent of predator
 size. If that assumption does not hold, directly fitting the pooled
@@ -103,18 +124,24 @@ necessary.
 ## Transforming fitted families
 
 The normal, smoothly truncated-exponential, and Gaussian-mixture
-families are closed under exponential tilting. Let $a = q_{1} - q_{0}$.
+families are closed under exponential tilting. Let $`a=q_1-q_0`$.
 
 ### Normal distribution
 
-For a normal density with mean $\mu$ and standard deviation $\sigma$,
+For a normal density with mean $`\mu`$ and standard deviation
+$`\sigma`$,
 
-$$e^{- al}\exp\left\lbrack - \frac{(l - \mu)^{2}}{2\sigma^{2}} \right\rbrack \propto \exp\left\lbrack - \frac{\left( l - \left( \mu - a\sigma^{2} \right) \right)^{2}}{2\sigma^{2}} \right\rbrack.$$
+``` math
+e^{-al}\exp\left[-\frac{(l-\mu)^2}{2\sigma^2}\right]
+\propto
+\exp\left[-\frac{(l-(\mu-a\sigma^2))^2}{2\sigma^2}\right].
+```
 
-The transformed mean is $\mu - a\sigma^{2}$ and the standard deviation
-is unchanged.
+The transformed mean is $`\mu-a\sigma^2`$ and the standard deviation is
+unchanged.
 
 ``` r
+
 fit_number <- fit_log_ppmr(
   barnes_data,
   "Albacore",
@@ -136,15 +163,21 @@ The unnormalized density used by
 [`dtexp()`](https://gustavdelius.github.io/mizerStomach/reference/dtexp.md)
 is
 
-$$f(l) \propto \frac{e^{\alpha l}}{\left( 1 + e^{u_{l}{(l_{l} - l)}} \right)\left( 1 + e^{u_{r}{(l - l_{r})}} \right)}.$$
+``` math
+f(l) \propto
+\frac{e^{\alpha l}}
+{(1+e^{u_l(l_l-l)})(1+e^{u_r(l-l_r)})}.
+```
 
-Multiplication by $e^{- al}$ changes only the exponential slope:
+Multiplication by $`e^{-al}`$ changes only the exponential slope:
 
-$$\widetilde{\alpha} = \alpha - a.$$
+``` math
+\tilde\alpha=\alpha-a.
+```
 
-The cutoff locations $l_{l},l_{r}$ and steepnesses $u_{l},u_{r}$ are
+The cutoff locations $`l_l,l_r`$ and steepnesses $`u_l,u_r`$ are
 unchanged. The implemented density is numerically normalized over the
-intended log-PPMR range $0 \leq l \leq 30$; see
+intended log-PPMR range $`0\le l\le30`$; see
 [`?dtexp`](https://gustavdelius.github.io/mizerStomach/reference/dtexp.md)
 for exact evaluation behavior.
 
@@ -152,21 +185,32 @@ for exact evaluation behavior.
 
 For a mixture
 
-$$f(l) = \sum\limits_{j = 1}^{k}p_{j}\mathcal{N}\left( l \mid \mu_{j},\sigma_{j} \right),$$
+``` math
+f(l)=\sum_{j=1}^k p_j
+\mathcal N(l\mid\mu_j,\sigma_j),
+```
 
 each transformed component has
 
-$${\widetilde{\mu}}_{j} = \mu_{j} - a\sigma_{j}^{2},\qquad{\widetilde{\sigma}}_{j} = \sigma_{j},$$
+``` math
+\tilde\mu_j=\mu_j-a\sigma_j^2,
+\qquad
+\tilde\sigma_j=\sigma_j,
+```
 
 and its unnormalized mixing weight is
 
-$${\widetilde{p}}_{j}^{*} = p_{j}\exp\left( - a\mu_{j} + \frac{a^{2}\sigma_{j}^{2}}{2} \right).$$
+``` math
+\tilde p_j^* =
+p_j\exp\left(-a\mu_j+\frac{a^2\sigma_j^2}{2}\right).
+```
 
-The final ${\widetilde{p}}_{j}$ are obtained by dividing these weights
-by their sum. The following numerical check compares this parameter
+The final $`\tilde p_j`$ are obtained by dividing these weights by their
+sum. The following numerical check compares this parameter
 transformation with directly tilting a density on a fine grid.
 
 ``` r
+
 mixture <- list(
   species = "example",
   distribution = "gauss_mix",
@@ -209,3 +253,17 @@ and
 For the additional assumptions that turn a stomach distribution into a
 feeding kernel, continue with
 [`vignette("feeding_kernels")`](https://gustavdelius.github.io/mizerStomach/articles/feeding_kernels.md).
+
+## References
+
+Andersen, Niels G. 1999. “The Effects of Predator Size, Temperature, and
+Prey Characteristics on Gastric Evacuation in Whiting.” *Journal of Fish
+Biology* 54 (2): 287–301.
+
+Bromley, PJ. 1994. “The Role of Gastric Evacuation Experiments in
+Quantifying the Feeding Rates of Predatory Fish.” *Reviews in Fish
+Biology and Fisheries* 4 (1): 36–66.
+
+Jobling, Malcolm. 1981. “Mathematical Models of Gastric Emptying and the
+Estimation of Daily Rates of Food Consumption for Fish.” *Journal of
+Fish Biology* 19 (3): 245–57.

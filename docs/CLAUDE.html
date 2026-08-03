@@ -18,6 +18,7 @@
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="articles/mizerStomach.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/gustavdelius/mizerStomach/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -58,17 +59,17 @@
 <h2 id="architecture">Architecture<a class="anchor" aria-label="anchor" href="#architecture"></a></h2>
 <div class="section level3">
 <h3 id="core-modules">Core Modules<a class="anchor" aria-label="anchor" href="#core-modules"></a></h3>
-<table class="table"><colgroup><col width="28%"><col width="71%"></colgroup><thead><tr class="header"><th>File</th>
+<table class="table"><colgroup><col width="28%"><col width="71%"></colgroup><thead><tr><th>File</th>
 <th>Responsibility</th>
-</tr></thead><tbody><tr class="odd"><td><code>R/fit.R</code></td>
+</tr></thead><tbody><tr><td><code>R/fit.R</code></td>
 <td>MLE fitting of distributions to log(PPMR) data</td>
-</tr><tr class="even"><td><code>R/densities.R</code></td>
+</tr><tr><td><code>R/densities.R</code></td>
 <td>Density functions including custom <code><a href="reference/dtexp.html">dtexp()</a></code> (truncated exponential)</td>
-</tr><tr class="odd"><td><code>R/plot.R</code></td>
+</tr><tr><td><code>R/plot.R</code></td>
 <td>ggplot2 visualizations of fits and PPMR violin plots</td>
-</tr><tr class="even"><td><code>R/transform.R</code></td>
+</tr><tr><td><code>R/transform.R</code></td>
 <td>Transform fit parameters when changing observation weighting power</td>
-</tr><tr class="odd"><td><code>R/validate.R</code></td>
+</tr><tr><td><code>R/validate.R</code></td>
 <td>Input validation helpers called by all public functions</td>
 </tr></tbody></table></div>
 <div class="section level3">

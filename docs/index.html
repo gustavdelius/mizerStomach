@@ -34,6 +34,7 @@
 <li class="nav-item"><a class="nav-link" href="articles/mizerStomach.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -47,7 +48,157 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><p>This package helps with determining the size selectivity function that determines the preference of a predator for prey of different sizes.</p>
+  <main id="main" class="col-md-9"><div class="section level1">
+<div class="page-header"><h1 id="mizerstomach">mizerStomach<a class="anchor" aria-label="anchor" href="#mizerstomach"></a>
+</h1></div>
+<p><code>mizerStomach</code> turns predator stomach-content observations into candidate feeding kernels for <a href="https://sizespectrum.org/mizer/" class="external-link">mizer</a> size-spectrum models.</p>
+<p>It fits distributions to observed prey sizes, helps diagnose whether those distributions are adequate, translates them among prey-number and prey-biomass weightings, and transfers supported fits to a <code>MizerParams</code> object.</p>
+<p><a href="https://gustavdelius.github.io/mizerStomach/articles/mizerStomach.html">Get started with the complete workflow</a> or browse the <a href="https://gustavdelius.github.io/mizerStomach/reference/">function reference</a>.</p>
+<div class="section level2">
+<h2 id="what-the-package-provides">What the package provides<a class="anchor" aria-label="anchor" href="#what-the-package-provides"></a>
+</h2>
+<ul>
+<li>Validation and standardization of predator/prey body-mass observations.</li>
+<li>Predator-size diagnostics for the assumption of a species-level PPMR distribution.</li>
+<li>Weighted fitting of normal, smoothly truncated-exponential, and two-component Gaussian-mixture distributions.</li>
+<li>Comparisons of fitted and observed prey-number and prey-biomass distributions.</li>
+<li>Analytical transformation of fitted distributions between prey-mass weightings.</li>
+<li>Interactive fitting and parameter adjustment with a Shiny gadget.</li>
+<li>Conversion between fitted stomach distributions and mizer feeding-kernel parameters.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>Install the development version from GitHub:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"gustavdelius/mizerStomach"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="a-quick-glimpse">A quick glimpse<a class="anchor" aria-label="anchor" href="#a-quick-glimpse"></a>
+</h2>
+<p>The package works with the log predator/prey mass ratio</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>w</mi><mtext mathvariant="normal">pred</mtext></msub><msub><mi>w</mi><mtext mathvariant="normal">prey</mtext></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\log(\mathrm{PPMR}) = \log\left(\frac{w_\text{pred}}{w_\text{prey}}\right).
+</annotation></semantics></math></p>
+<p>The package includes <code>barnes_data</code>, with 23,164 predator/prey observations for 12 marine predator species. This example fits a normal distribution to Atlantic cod using the diet-biomass weighting discussed in the articles:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://gustavdelius.github.io/mizerStomach/">mizerStomach</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cod_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fit_log_ppmr.html">fit_log_ppmr</a></span><span class="op">(</span></span>
+<span>  <span class="va">barnes_data</span>,</span>
+<span>  species <span class="op">=</span> <span class="st">"Atlantic cod"</span>,</span>
+<span>  distribution <span class="op">=</span> <span class="st">"normal"</span>,</span>
+<span>  power <span class="op">=</span> <span class="fl">2</span> <span class="op">/</span> <span class="fl">3</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/plot_log_ppmr_fit.html">plot_log_ppmr_fit</a></span><span class="op">(</span><span class="va">barnes_data</span>, <span class="va">cod_fit</span>, type <span class="op">=</span> <span class="st">"histogram"</span><span class="op">)</span></span></code></pre></div>
+<p>The fitted object records the weighting in its <code>power</code> column. It can be expressed at another weighting without refitting the observations:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cod_number_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/transform_fit.html">transform_fit</a></span><span class="op">(</span><span class="va">cod_fit</span>, power <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">12</span>, length.out <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span><span class="va">density</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_density.html">get_density</a></span><span class="op">(</span><span class="va">grid</span>, <span class="va">cod_number_fit</span><span class="op">)</span></span></code></pre></div>
+<p>Normal and truncated-exponential fits can be transferred to mizer. Species names must agree between the fit and model:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu">mizer</span><span class="fu">::</span><span class="va"><a href="https://sizespectrum.org/mizer/reference/NS_params.html" class="external-link">NS_params</a></span></span>
+<span></span>
+<span><span class="va">model_cod_fit</span> <span class="op">&lt;-</span> <span class="va">cod_fit</span></span>
+<span><span class="va">model_cod_fit</span><span class="op">$</span><span class="va">species</span> <span class="op">&lt;-</span> <span class="st">"Cod"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">model_cod_fit</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"Cod"</span></span>
+<span></span>
+<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/set_kernel_params.html">set_kernel_params</a></span><span class="op">(</span><span class="va">params</span>, <span class="va">model_cod_fit</span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="reference/extract_fit.html">extract_fit()</a></code> performs the reverse conversion, allowing existing mizer kernels to be inspected with the same plotting and density tools.</p>
+<p>The <a href="https://gustavdelius.github.io/mizerStomach/articles/mizerStomach.html">Getting started article</a> explains each of these steps, including data validation, the meaning of <code>power</code>, fit diagnostics, interactive refinement, and safe transfer to mizer.</p>
+</div>
+<div class="section level2">
+<h2 id="input-data">Input data<a class="anchor" aria-label="anchor" href="#input-data"></a>
+</h2>
+<p>Each row describes one prey observation or a group of identical prey observations. The required columns are:</p>
+<table class="table">
+<thead><tr>
+<th align="left">Column</th>
+<th align="left">Meaning</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left"><code>species</code></td>
+<td align="left">Predator species name</td>
+</tr>
+<tr>
+<td align="left"><code>w_pred</code></td>
+<td align="left">Predator body mass</td>
+</tr>
+<tr>
+<td align="left"><code>w_prey</code></td>
+<td align="left">Body mass of one prey individual</td>
+</tr>
+<tr>
+<td align="left"><code>n_prey</code></td>
+<td align="left">Number or frequency of prey represented by the row</td>
+</tr>
+</tbody>
+</table>
+<p>Predator and prey masses may use any unit as long as they use the same unit. <code><a href="reference/validate_ppmr_data.html">validate_ppmr_data()</a></code> checks this structure and calculates <code>log_ppmr</code> when it is absent. It is a format validator, not a substitute for biological data cleaning.</p>
+</div>
+<div class="section level2">
+<h2 id="fitted-distributions">Fitted distributions<a class="anchor" aria-label="anchor" href="#fitted-distributions"></a>
+</h2>
+<p><code><a href="reference/fit_log_ppmr.html">fit_log_ppmr()</a></code> supports three families:</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th align="left">Family</th>
+<th align="left">Method</th>
+<th align="left">Transfer to mizer</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left"><code>"normal"</code></td>
+<td align="left">Weighted maximum likelihood</td>
+<td align="left">Yes, as a lognormal kernel</td>
+</tr>
+<tr>
+<td align="left"><code>"trunc_exp"</code></td>
+<td align="left">Weighted nonlinear maximum likelihood with smooth cutoffs</td>
+<td align="left">Yes, as a power-law kernel</td>
+</tr>
+<tr>
+<td align="left"><code>"gauss_mix"</code></td>
+<td align="left">Weighted expectation-maximization</td>
+<td align="left">Not currently supported</td>
+</tr>
+</tbody>
+</table>
+<p>Observation rows receive weight <code>n_prey * w_prey^power</code>. Common choices are <code>power = 0</code> for prey numbers, <code>power = 1</code> for stomach prey biomass, and <code>power = 2 / 3</code> for diet biomass under the package’s digestion-scaling assumption. The meaning and limitations of these choices are developed in the articles rather than repeated here.</p>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>After this homepage, the package articles form a progression:</p>
+<ol style="list-style-type: decimal">
+<li>
+<a href="https://gustavdelius.github.io/mizerStomach/articles/mizerStomach.html">Getting started</a> gives the practical end-to-end workflow.</li>
+<li>
+<a href="https://gustavdelius.github.io/mizerStomach/articles/density_functions.html">Weighting and log-PPMR distributions</a> derives prey-mass weighting and density transformations.</li>
+<li>
+<a href="https://gustavdelius.github.io/mizerStomach/articles/PPMR_distributions.html">Choosing and diagnosing a log-PPMR distribution</a> covers data limitations, family choice, optimization, and diagnostics.</li>
+<li>
+<a href="https://gustavdelius.github.io/mizerStomach/articles/feeding_kernels.html">From stomach distributions to mizer feeding kernels</a> derives the mizer conversion and its biological assumptions.</li>
+</ol>
+</div>
+<div class="section level2">
+<h2 id="scope">Scope<a class="anchor" aria-label="anchor" href="#scope"></a>
+</h2>
+<p>A fitted stomach distribution is a candidate description of predator feeding, not direct proof of preference. Stomach contents can also reflect prey availability, capture probability, digestion, evacuation, sampling gear, season, location, and taxonomic resolution. These assumptions should remain visible when interpreting a fitted distribution or the mizer model built from it.</p>
+<p>Report bugs or request features through the <a href="https://github.com/gustavdelius/mizerStomach/issues" class="external-link">GitHub issue tracker</a>.</p>
+</div>
+</div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">

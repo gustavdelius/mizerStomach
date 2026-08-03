@@ -32,6 +32,7 @@
 <li class="active nav-item"><a class="nav-link" href="../articles/mizerStomach.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -61,15 +62,15 @@
     
     
 <p><code>mizerStomach</code> uses stomach-content observations to
-estimate how a predator’s prey are distributed over body size. It works
-on the log predator/prey mass ratio</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>w</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>d</mi></mrow></msub><msub><mi>w</mi><mrow><mi>p</mi><mi>r</mi><mi>e</mi><mi>y</mi></mrow></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
-l = \log\left(\frac{w_{pred}}{w_{prey}}\right),
+estimate how a predator’s prey are distributed over body size <span class="citation">(Hyslop 1980; Baker et al. 2014; Amundsen et al.
+1996)</span>. It works on the log predator/prey mass ratio</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>w</mi><mtext mathvariant="normal">pred</mtext></msub><msub><mi>w</mi><mtext mathvariant="normal">prey</mtext></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\log(\mathrm{PPMR}) = \log\left(\frac{w_\text{pred}}{w_\text{prey}}\right).
 </annotation></semantics></math></p>
 <p>fits a probability distribution to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(\mathrm{PPMR})</annotation></semantics></math>,
 and can translate that distribution into feeding-kernel parameters for a
-<a href="https://sizespectrum.org/mizer/" class="external-link">mizer</a> model.</p>
+<a href="https://sizespectrum.org/mizer/" class="external-link">mizer</a> model <span class="citation">(Scott et al. 2014)</span>.</p>
 <p>This vignette introduces the usual workflow:</p>
 <ol style="list-style-type: decimal">
 <li>prepare and check stomach-content data;</li>
@@ -89,7 +90,7 @@ stomach-to-kernel assumptions and derivation.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://gustavdelius.github.io/mizerStomach/">mizerStomach</a></span><span class="op">)</span></span></code></pre></div>
 <p>The package includes <code>barnes_data</code>, a set of individual
-predator/prey body-mass observations for 12 predator species.</p>
+predator/prey body-mass observations for 12 predator species <span class="citation">(Barnes et al. 2010)</span>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">barnes_data</span>, <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 5</span></span></span>
@@ -431,6 +432,39 @@ feeding kernel and explains its assumptions.</li>
 predator-size dependence, fit at a weighting relevant to the biological
 question, and judge both the number and biomass implications before
 updating a model.</p>
+</div>
+<div class="section level2 unnumbered">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-amundsen1996new" class="csl-entry">
+Amundsen, Per-Arne, H-M Gabler, and FJ Staldal. 1996. <span>“A New
+Approach to Graphical Analysis of Feeding Strategy from Stomach Contents
+Data—Modification of the Costello (1990) Method.”</span> <em>Journal of
+Fish Biology</em> 48 (4): 607–14.
+</div>
+<div id="ref-baker2014fish" class="csl-entry">
+Baker, R, A Buckland, and M Sheaves. 2014. <span>“Fish Gut Content
+Analysis: Robust Measures of Diet Composition.”</span> <em>Fish and
+Fisheries</em> 15 (1): 170–77.
+</div>
+<div id="ref-barnes2010global" class="csl-entry">
+Barnes, C, D Maxwell, DC Reuman, and S Jennings. 2010. <span>“Global
+Patterns in Predator–Prey Size Relationships Reveal Size Dependency of
+Trophic Transfer Efficiency.”</span> <em>Ecology</em> 91 (1): 222–32.
+</div>
+<div id="ref-hyslop1980stomach" class="csl-entry">
+Hyslop, EJ. 1980. <span>“Stomach Contents Analysis—a Review of Methods
+and Their Application.”</span> <em>Journal of Fish Biology</em> 17 (4):
+411–29.
+</div>
+<div id="ref-scott2014mizer" class="csl-entry">
+Scott, Finlay, Julia L Blanchard, and Ken H Andersen. 2014.
+<span>“Mizer: An r Package for Multispecies, Trait-Based and Community
+Size Spectrum Ecological Modelling.”</span> <em>Methods in Ecology and
+Evolution</em> 5 (10): 1121–25.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

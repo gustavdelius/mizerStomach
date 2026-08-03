@@ -53,6 +53,8 @@ Read the package articles in this order:
 
 Useful links:
 
+- <https://gustavdelius.github.io/mizerStomach/>
+
 - <https://github.com/gustavdelius/mizerStomach>
 
 - Report bugs at <https://github.com/gustavdelius/mizerStomach/issues>

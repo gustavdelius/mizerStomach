@@ -1,14 +1,15 @@
 # Choosing and diagnosing a log-PPMR distribution
 
 ``` r
+
 library(mizerStomach)
 ```
 
 This article develops the diagnostic choices introduced in
 [`vignette("mizerStomach")`](https://gustavdelius.github.io/mizerStomach/articles/mizerStomach.md).
-It uses only `barnes_data`, which is distributed with the package, and
-focuses on questions that should be answered before a fit is transferred
-to a mizer model:
+It uses only `barnes_data` (Barnes et al. 2010), which is distributed
+with the package, and focuses on questions that should be answered
+before a fit is transferred to a mizer model (Scott et al. 2014):
 
 1.  Is one log predator/prey mass-ratio (log-PPMR) distribution adequate
     across predator sizes?
@@ -26,6 +27,7 @@ Other datasets can aggregate repeated observations by placing their
 count or frequency in `n_prey`.
 
 ``` r
+
 head(barnes_data, 4)
 #> # A tibble: 4 × 5
 #>   species               w_pred w_prey n_prey log_ppmr
@@ -69,6 +71,7 @@ small prey, while `power = 2/3` emphasizes the part of the distribution
 relevant to diet biomass under the package’s digestion assumption.
 
 ``` r
+
 set.seed(1)
 plot_ppmr_violins(barnes_data, "Atlantic cod", power = 0)
 #> Warning: `quantiles` for weighted data is not implemented.
@@ -86,6 +89,7 @@ plot_ppmr_violins(barnes_data, "Atlantic cod", power = 0)
 ![](PPMR_distributions_files/figure-html/violins-number-1.png)
 
 ``` r
+
 set.seed(1)
 plot_ppmr_violins(barnes_data, "Atlantic cod", power = 2 / 3)
 #> Warning: `quantiles` for weighted data is not implemented.
@@ -117,11 +121,11 @@ examples set a seed.
 ## Choose the fitted weighting
 
 [`fit_log_ppmr()`](https://gustavdelius.github.io/mizerStomach/reference/fit_log_ppmr.md)
-weights row $i$ by $n_{prey,i}w_{prey,i}^{q}$, where $q$ is `power`. A
-direct fit at `power = 0` emphasizes the numerous small prey in the
-right tail of log PPMR. A biomass fit at `power = 1` emphasizes the
-rarer large prey in the left tail. Here we use `power = 2/3` to focus on
-digestion-adjusted diet biomass.
+weights row $`i`$ by $`n_{prey,i}w_{prey,i}^{q}`$, where $`q`$ is
+`power`. A direct fit at `power = 0` emphasizes the numerous small prey
+in the right tail of log PPMR. A biomass fit at `power = 1` emphasizes
+the rarer large prey in the left tail. Here we use `power = 2/3` to
+focus on digestion-adjusted diet biomass.
 
 This choice is part of the estimand. It should not be selected solely
 because it makes a particular parametric family look attractive.
@@ -133,6 +137,7 @@ standard deviation. It is easy to interpret, and maps to mizer’s
 lognormal feeding kernel, but it is symmetric and has unbounded tails.
 
 ``` r
+
 cod_normal <- fit_log_ppmr(
   barnes_data,
   species = "Atlantic cod",
@@ -145,6 +150,7 @@ cod_normal
 ```
 
 ``` r
+
 plot_log_ppmr_fit(barnes_data, cod_normal, type = "histogram")
 ```
 
@@ -164,6 +170,7 @@ cutoff locations, and cutoff steepnesses. They are estimated by weighted
 maximum likelihood.
 
 ``` r
+
 cod_truncated <- fit_log_ppmr(
   barnes_data,
   species = "Atlantic cod",
@@ -178,6 +185,7 @@ cod_truncated
 ```
 
 ``` r
+
 plot_log_ppmr_fit(barnes_data, cod_truncated, type = "histogram")
 ```
 
@@ -193,6 +201,7 @@ boundaries.
 A previous truncated-exponential fit can supply starting values:
 
 ``` r
+
 cod_truncated <- fit_log_ppmr(
   barnes_data,
   distribution = "trunc_exp",
@@ -207,6 +216,7 @@ following comparison shows why one family need not be appropriate for
 every predator.
 
 ``` r
+
 selected_species <- c(
   "Albacore", "Atlantic cod", "Silver hake", "Yellowfin tuna"
 )
@@ -223,6 +233,7 @@ plot_log_ppmr_fit(barnes_data, normal_fits)
 ![](PPMR_distributions_files/figure-html/multispecies-normal-1.png)
 
 ``` r
+
 truncated_fits <- fit_log_ppmr(
   barnes_data,
   species = selected_species,
@@ -248,6 +259,7 @@ weighted observations has the same parameters when the family is only
 approximate or when predator size affects PPMR.
 
 ``` r
+
 cod_number_normal <- fit_log_ppmr(
   barnes_data, "Atlantic cod", "normal", power = 0
 )
@@ -291,6 +303,7 @@ can switch among families, refit the current species, and adjust
 parameters while displaying the number and biomass diagnostics.
 
 ``` r
+
 tuned <- fit_shiny(barnes_data, fits = cod_truncated)
 ```
 
@@ -322,3 +335,14 @@ in
 [`?fit_truncated_exponential`](https://gustavdelius.github.io/mizerStomach/reference/fit_truncated_exponential.md),
 and
 [`?plot_log_ppmr_fit`](https://gustavdelius.github.io/mizerStomach/reference/plot_log_ppmr_fit.md).
+
+## References
+
+Barnes, C, D Maxwell, DC Reuman, and S Jennings. 2010. “Global Patterns
+in Predator–Prey Size Relationships Reveal Size Dependency of Trophic
+Transfer Efficiency.” *Ecology* 91 (1): 222–32.
+
+Scott, Finlay, Julia L Blanchard, and Ken H Andersen. 2014. “Mizer: An r
+Package for Multispecies, Trait-Based and Community Size Spectrum
+Ecological Modelling.” *Methods in Ecology and Evolution* 5 (10):
+1121–25.

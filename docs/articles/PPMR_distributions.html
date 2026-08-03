@@ -32,6 +32,7 @@
 <li class="nav-item"><a class="nav-link" href="../articles/mizerStomach.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -64,9 +65,10 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://gustavdelius.github.io/mizerStomach/">mizerStomach</a></span><span class="op">)</span></span></code></pre></div>
 <p>This article develops the diagnostic choices introduced in
 <code><a href="../articles/mizerStomach.html">vignette("mizerStomach")</a></code>. It uses only
-<code>barnes_data</code>, which is distributed with the package, and
-focuses on questions that should be answered before a fit is transferred
-to a mizer model:</p>
+<code>barnes_data</code> <span class="citation">(Barnes et al.
+2010)</span>, which is distributed with the package, and focuses on
+questions that should be answered before a fit is transferred to a mizer
+model <span class="citation">(Scott et al. 2014)</span>:</p>
 <ol style="list-style-type: decimal">
 <li>Is one log predator/prey mass-ratio (log-PPMR) distribution adequate
 across predator sizes?</li>
@@ -352,6 +354,23 @@ transformed into mizer feeding-kernel parameters. Exact optimizer
 behavior and return columns are documented in
 <code><a href="../reference/fit_log_ppmr.html">?fit_log_ppmr</a></code>, <code><a href="../reference/fit_truncated_exponential.html">?fit_truncated_exponential</a></code>, and
 <code><a href="../reference/plot_log_ppmr_fit.html">?plot_log_ppmr_fit</a></code>.</p>
+</div>
+<div class="section level2 unnumbered">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-barnes2010global" class="csl-entry">
+Barnes, C, D Maxwell, DC Reuman, and S Jennings. 2010. <span>“Global
+Patterns in Predator–Prey Size Relationships Reveal Size Dependency of
+Trophic Transfer Efficiency.”</span> <em>Ecology</em> 91 (1): 222–32.
+</div>
+<div id="ref-scott2014mizer" class="csl-entry">
+Scott, Finlay, Julia L Blanchard, and Ken H Andersen. 2014.
+<span>“Mizer: An r Package for Multispecies, Trait-Based and Community
+Size Spectrum Ecological Modelling.”</span> <em>Methods in Ecology and
+Evolution</em> 5 (10): 1121–25.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
