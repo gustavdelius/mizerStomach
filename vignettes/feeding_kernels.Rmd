@@ -166,9 +166,10 @@ $$
 while the two cutoff locations and steepnesses are unchanged. mizer represents
 this as a `"power_law"` kernel using its five `kernel_*` columns.
 
-Gaussian mixtures are closed under the weighting transformation but do not
-currently have a corresponding mizer kernel parameterization, so
-`set_kernel_params()` rejects them.
+For a Gaussian mixture, the component means and proportions are transformed as
+described in `vignette("density_functions")`. mizer represents the result as a
+`"gaussian_mixture"` kernel, storing the transformed component vectors in the
+list-columns `kernel_p`, `kernel_mean`, and `kernel_sd`.
 
 ## Worked mizer example
 

@@ -14,8 +14,8 @@
 #'    with [fit_log_ppmr()];
 #' 4. diagnose number- and biomass-weighted fits with
 #'    [plot_log_ppmr_fit()]; and
-#' 5. transfer a supported normal or truncated-exponential fit to a mizer model
-#'    with [set_kernel_params()].
+#' 5. transfer a fitted distribution to a mizer model with
+#'    [set_kernel_params()].
 #'
 #' Fit objects retain the exponent of prey mass used as an observation weight.
 #' [transform_fit()] uses family-specific parameter updates to express a fit at

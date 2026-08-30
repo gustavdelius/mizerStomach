@@ -189,10 +189,10 @@ cod_truncated <- fit_log_ppmr(
 ```
 
 The third family, `distribution = "gauss_mix"`, fits a two-component normal
-mixture with weighted EM updates. It can represent multimodality but is not
-currently supported by `set_kernel_params()`. Mixture fits can be sensitive to
-initialization and nearly degenerate components, so use them for exploratory
-diagnosis and check the result carefully.
+mixture with weighted EM updates and can be transferred to mizer as a
+`"gaussian_mixture"` predation kernel. Mixture fits can be sensitive to
+initialization and nearly degenerate components, so check the result carefully
+before using it in a model.
 
 ## Diagnose a fit
 
@@ -250,17 +250,18 @@ tuned_fit <- fit_shiny(barnes_data, fits = cod_truncated)
 
 ## Put a fit into a mizer model
 
-`set_kernel_params()` supports normal and truncated-exponential fits. It first
-transforms the fit from its recorded `power` to the exponent required by the
-model,
+`set_kernel_params()` supports normal, truncated-exponential, and
+Gaussian-mixture fits. It first transforms the fit from its recorded `power` to
+the exponent required by the model,
 
 $$
 q_{mizer} = \lambda - \frac{4}{3},
 $$
 
 where `lambda` is the resource-spectrum exponent in the `MizerParams` object.
-It then maps a normal distribution to mizer's `"lognormal"` feeding kernel, or a
-truncated exponential to its `"power_law"` kernel.
+It then maps a normal distribution to mizer's `"lognormal"` feeding kernel, a
+truncated exponential to its `"power_law"` kernel, or a Gaussian mixture to its
+`"gaussian_mixture"` kernel.
 
 Species names in the fit and model must agree. The Barnes data call the species
 `"Atlantic cod"`, while `mizer::NS_params` calls it `"Cod"`, so we rename the

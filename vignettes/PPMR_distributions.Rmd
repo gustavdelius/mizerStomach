@@ -234,10 +234,11 @@ updates from a deterministic initialization. Mixture likelihoods can have
 local optima or nearly degenerate components, so visually inspect the result
 and consider multiple initializations in a more specialized analysis.
 
-Gaussian mixtures are supported by `get_density()` and `transform_fit()` but
-cannot currently be transferred to mizer with `set_kernel_params()`. They are
-therefore most useful for exploratory diagnosis rather than the final kernel
-workflow.
+Gaussian mixtures are supported throughout the workflow, including transfer to
+mizer with `set_kernel_params()`. Because mixture likelihoods can have local
+optima or nearly degenerate components, the fitted kernel should still be
+treated as exploratory until it has been checked visually and against relevant
+biological knowledge.
 
 ## Interactive refinement
 

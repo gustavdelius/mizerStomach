@@ -340,6 +340,60 @@ test_that("set_kernel_params maps a truncated-exponential fit", {
     )
 })
 
+test_that("set_kernel_params maps a Gaussian-mixture fit", {
+    params <- mizer::NS_params
+    original <- params@species_params
+    species <- original$species[1]
+    kernel_power <- params@resource_params$lambda - 4 / 3
+    fit <- data.frame(
+        species = species, distribution = "gauss_mix", power = 0
+    )
+    fit$p <- I(list(c(0.3, 0.7)))
+    fit$mean <- I(list(c(3, 7)))
+    fit$sd <- I(list(c(1, 1.5)))
+    expected <- transform_fit(fit, power = kernel_power)
+
+    result <- suppressWarnings(set_kernel_params(params, fit))
+    result_sp <- result@species_params
+
+    expect_equal(unname(result_sp$pred_kernel_type[1]), "gaussian_mixture")
+    expect_equal(result_sp$kernel_p[[1]], expected$p[[1]])
+    expect_equal(result_sp$kernel_mean[[1]], expected$mean[[1]])
+    expect_equal(result_sp$kernel_sd[[1]], expected$sd[[1]])
+    expect_true(all(is.finite(mizer::getPredKernel(result))))
+    expect_identical(params@species_params, original)
+})
+
+test_that("extract_fit handles heterogeneous kernel families", {
+    params <- mizer::NS_params
+    species <- params@species_params$species[1]
+    mixture <- data.frame(
+        species = species, distribution = "gauss_mix", power = 0
+    )
+    mixture$p <- I(list(c(0.3, 0.7)))
+    mixture$mean <- I(list(c(3, 7)))
+    mixture$sd <- I(list(c(1, 1.5)))
+    params <- suppressWarnings(set_kernel_params(params, mixture))
+
+    result <- extract_fit(params)
+
+    expect_equal(result$distribution[1], "gauss_mix")
+    expect_true(is.list(result$mean))
+    expect_true(is.list(result$sd))
+    expect_true(is.list(result$p))
+    expect_equal(result$p[[1]], mixture$p[[1]])
+    expect_equal(result$mean[[1]], mixture$mean[[1]])
+    expect_equal(result$sd[[1]], mixture$sd[[1]])
+    expect_equal(result$distribution[2], "normal")
+    expect_length(result$mean[[2]], 1)
+    expect_length(result$sd[[2]], 1)
+
+    transformed <- transform_fit(result[1:2, ], power = 1)
+    densities <- get_density(seq(1, 10, length.out = 20), transformed)
+    expect_equal(dim(densities), c(20, 2))
+    expect_true(all(is.finite(densities)))
+})
+
 test_that("kernel parameter conversions round trip", {
     params <- mizer::NS_params
     normal_fit <- extract_fit(params)[1, , drop = FALSE]
@@ -366,15 +420,9 @@ test_that("kernel parameter conversions round trip", {
     )
 })
 
-test_that("set_kernel_params rejects unknown species and Gaussian mixtures", {
+test_that("set_kernel_params rejects unknown species", {
     normal <- data.frame(
         species = "not in model", distribution = "normal", mean = 5, sd = 1
     )
     expect_error(set_kernel_params(mizer::NS_params, normal), "not found in params")
-
-    mixture <- data.frame(species = "Cod", distribution = "gauss_mix")
-    mixture$p <- I(list(c(0.5, 0.5)))
-    mixture$mean <- I(list(c(3, 7)))
-    mixture$sd <- I(list(c(1, 2)))
-    expect_error(set_kernel_params(mizer::NS_params, mixture), "not supported")
 })

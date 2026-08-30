@@ -59,7 +59,9 @@ get_density <- function(x, fit) {
 #' @keywords internal
 get_density_single <- function(x, fit) {
     if (fit$distribution == "normal") {
-        d <- dnorm(x, mean = fit$mean, sd = fit$sd)
+        means <- if (is.list(fit$mean)) fit$mean[[1]] else fit$mean
+        sds <- if (is.list(fit$sd)) fit$sd[[1]] else fit$sd
+        d <- dnorm(x, mean = means, sd = sds)
     } else if (fit$distribution == "trunc_exp") {
         d <- dtexp(x, alpha = fit$alpha, ll = fit$ll, ul = fit$ul,
                    lr = fit$lr, ur = fit$ur)
