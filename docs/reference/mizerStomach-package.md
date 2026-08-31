@@ -23,8 +23,7 @@ workflow is to:
     [`plot_log_ppmr_fit()`](https://gustavdelius.github.io/mizerStomach/reference/plot_log_ppmr_fit.md);
     and
 
-5.  transfer a supported normal or truncated-exponential fit to a mizer
-    model with
+5.  transfer a fitted distribution to a mizer model with
     [`set_kernel_params()`](https://gustavdelius.github.io/mizerStomach/reference/set_kernel_params.md).
 
 Fit objects retain the exponent of prey mass used as an observation

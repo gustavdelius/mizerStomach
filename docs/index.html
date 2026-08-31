@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>What the Package Does (Title Case) • mizerStomach</title>
-<script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script src="deps/jquery-3.6.1/jquery-3.6.1.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -79,7 +79,7 @@
 <h2 id="a-quick-glimpse">A quick glimpse<a class="anchor" aria-label="anchor" href="#a-quick-glimpse"></a>
 </h2>
 <p>The package works with the log predator/prey mass ratio</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>w</mi><mtext mathvariant="normal">pred</mtext></msub><msub><mi>w</mi><mtext mathvariant="normal">prey</mtext></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>w</mi><mtext mathvariant="normal">pred</mtext></msub><msub><mi>w</mi><mtext mathvariant="normal">prey</mtext></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \log(\mathrm{PPMR}) = \log\left(\frac{w_\text{pred}}{w_\text{prey}}\right).
 </annotation></semantics></math></p>
 <p>The package includes <code>barnes_data</code>, with 23,164 predator/prey observations for 12 marine predator species. This example fits a normal distribution to Atlantic cod using the diet-biomass weighting discussed in the articles:</p>
@@ -100,7 +100,7 @@
 <span></span>
 <span><span class="va">grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">12</span>, length.out <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">density</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_density.html">get_density</a></span><span class="op">(</span><span class="va">grid</span>, <span class="va">cod_number_fit</span><span class="op">)</span></span></code></pre></div>
-<p>Normal and truncated-exponential fits can be transferred to mizer. Species names must agree between the fit and model:</p>
+<p>Normal, truncated-exponential, and Gaussian-mixture fits can be transferred to mizer. Species names must agree between the fit and model:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu">mizer</span><span class="fu">::</span><span class="va"><a href="https://sizespectrum.org/mizer/reference/NS_params.html" class="external-link">NS_params</a></span></span>
 <span></span>
@@ -117,24 +117,24 @@
 </h2>
 <p>Each row describes one prey observation or a group of identical prey observations. The required columns are:</p>
 <table class="table">
-<thead><tr>
+<thead><tr class="header">
 <th align="left">Column</th>
 <th align="left">Meaning</th>
 </tr></thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td align="left"><code>species</code></td>
 <td align="left">Predator species name</td>
 </tr>
-<tr>
+<tr class="even">
 <td align="left"><code>w_pred</code></td>
 <td align="left">Predator body mass</td>
 </tr>
-<tr>
+<tr class="odd">
 <td align="left"><code>w_prey</code></td>
 <td align="left">Body mass of one prey individual</td>
 </tr>
-<tr>
+<tr class="even">
 <td align="left"><code>n_prey</code></td>
 <td align="left">Number or frequency of prey represented by the row</td>
 </tr>
@@ -152,26 +152,26 @@
 <col width="33%">
 <col width="33%">
 </colgroup>
-<thead><tr>
+<thead><tr class="header">
 <th align="left">Family</th>
 <th align="left">Method</th>
 <th align="left">Transfer to mizer</th>
 </tr></thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td align="left"><code>"normal"</code></td>
 <td align="left">Weighted maximum likelihood</td>
 <td align="left">Yes, as a lognormal kernel</td>
 </tr>
-<tr>
+<tr class="even">
 <td align="left"><code>"trunc_exp"</code></td>
 <td align="left">Weighted nonlinear maximum likelihood with smooth cutoffs</td>
 <td align="left">Yes, as a power-law kernel</td>
 </tr>
-<tr>
+<tr class="odd">
 <td align="left"><code>"gauss_mix"</code></td>
 <td align="left">Weighted expectation-maximization</td>
-<td align="left">Not currently supported</td>
+<td align="left">Yes, as a Gaussian-mixture kernel</td>
 </tr>
 </tbody>
 </table>
@@ -240,7 +240,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

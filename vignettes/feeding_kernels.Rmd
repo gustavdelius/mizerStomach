@@ -76,7 +76,7 @@ N_c(w)=n_c w^{-\lambda}.
 $$
 
 For a mizer model, $\lambda$ is read from
-`params@resource_params$lambda`; it is not fixed at two by the package.
+`mizer::resource_params(params)$lambda`; it is not fixed at two by the package.
 
 ## Digestion and stomach residence
 
@@ -191,7 +191,7 @@ The model's resource exponent determines the exact kernel weighting:
 
 ```{r kernel-power}
 params <- mizer::NS_params
-kernel_power <- params@resource_params$lambda - 4 / 3
+kernel_power <- mizer::resource_params(params)$lambda - 4 / 3
 kernel_power
 transform_fit(cod_fit, power = kernel_power)
 ```

@@ -156,7 +156,8 @@ fit_log_ppmr <-
 #' @details
 #' A mizer kernel is expressed at the prey-mass weighting exponent
 #' \eqn{q_m = \lambda - 4/3}, where `lambda` is read from
-#' `params@resource_params$lambda`. This function first reads the parameters at
+#' [mizer::resource_params()]`$lambda`. This function first reads the
+#' parameters at
 #' \eqn{q_m} and then calls [transform_fit()] to return number-weighted fits
 #' (`power = 0`). This makes `extract_fit()` the inverse of
 #' [set_kernel_params()], apart from ordinary floating-point error.
@@ -191,7 +192,8 @@ fit_log_ppmr <-
 #'   `vignette("feeding_kernels", package = "mizerStomach")`.
 #' @export
 extract_fit <- function(params, species_dict = NULL) {
-  species_params <- params@species_params
+  species_params <- mizer::species_params(params)
+  resource_params <- mizer::resource_params(params)
   dist_map <- c(lognormal = "normal", power_law = "trunc_exp",
                 gaussian_mixture = "gauss_mix")
   distribution <- unname(dist_map[species_params$pred_kernel_type])
@@ -213,7 +215,7 @@ extract_fit <- function(params, species_dict = NULL) {
   fit <- data.frame(
     species      = species_names,
     distribution = distribution,
-    power        = params@resource_params$lambda - 4/3,
+    power        = resource_params$lambda - 4 / 3,
     min_w_pred   = 0,
     mean         = ifelse(is_normal, log(species_params$beta),    NA_real_),
     sd           = ifelse(is_normal, species_params$sigma,        NA_real_),
@@ -253,11 +255,11 @@ extract_fit <- function(params, species_dict = NULL) {
 #' @param fit A fit data frame accepted by [validate_fit()], usually returned
 #'   by [fit_log_ppmr()] or [extract_fit()]. It may contain any subset of model
 #'   species, but every name in `fit$species` must occur in
-#'   `params@species_params$species`.
+#'   [mizer::species_params()]`$species`.
 #'
 #' @details
-#' Let \eqn{\lambda} be `params@resource_params$lambda`. Before setting model
-#' parameters, each fit is transformed from its recorded `power` to
+#' Let \eqn{\lambda} be [mizer::resource_params()]`$lambda`. Before setting
+#' model parameters, each fit is transformed from its recorded `power` to
 #' \eqn{\lambda - 4/3} with [transform_fit()]. This is the exponential tilt
 #' that relates the distribution of prey in stomachs to mizer's feeding kernel
 #' under the package's resource-spectrum and digestion assumptions.
@@ -287,7 +289,7 @@ extract_fit <- function(params, species_dict = NULL) {
 #' @export
 set_kernel_params <- function(params, fit) {
   fit <- validate_fit(fit)
-  sp <- params@species_params
+  sp <- mizer::species_params(params)
 
   unknown <- setdiff(fit$species, sp$species)
   if (length(unknown) > 0) {
@@ -295,7 +297,7 @@ set_kernel_params <- function(params, fit) {
   }
 
   # Transform fit to the power used internally by mizer
-  mizer_power <- params@resource_params$lambda - 4/3
+  mizer_power <- mizer::resource_params(params)$lambda - 4 / 3
   fit <- transform_fit(fit, power = mizer_power)
 
   dist_map <- c(normal = "lognormal", trunc_exp = "power_law",

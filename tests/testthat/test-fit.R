@@ -225,7 +225,7 @@ test_that("fit_log_ppmr uses fits as start for trunc_exp", {
 # Tests for extract_fit species_dict argument
 test_that("extract_fit species_dict renames species in output", {
     params <- mizer::NS_params
-    sp_name <- params@species_params$species[[1]]
+    sp_name <- mizer::species_params(params)$species[[1]]
     dict <- setNames(list("renamed_species"), sp_name)
     result <- extract_fit(params, species_dict = dict)
     expect_equal(result$species[[1]], "renamed_species")
@@ -234,8 +234,8 @@ test_that("extract_fit species_dict renames species in output", {
 
 test_that("extract_fit species_dict leaves unmentioned species unchanged", {
     params <- mizer::NS_params
-    sp1 <- params@species_params$species[[1]]
-    sp2 <- params@species_params$species[[2]]
+    sp1 <- mizer::species_params(params)$species[[1]]
+    sp2 <- mizer::species_params(params)$species[[2]]
     dict <- setNames(list("renamed_species"), sp1)
     result <- extract_fit(params, species_dict = dict)
     expect_equal(result$species[[2]], sp2)
@@ -251,7 +251,7 @@ test_that("extract_fit with NULL species_dict keeps original names", {
 
 test_that("extract_fit species_dict works with named character vector", {
     params <- mizer::NS_params
-    sp_name <- params@species_params$species[[1]]
+    sp_name <- mizer::species_params(params)$species[[1]]
     dict <- setNames(c("vec_renamed"), sp_name)
     result <- extract_fit(params, species_dict = dict)
     expect_equal(result$species[[1]], "vec_renamed")
@@ -259,8 +259,8 @@ test_that("extract_fit species_dict works with named character vector", {
 
 test_that("extract_fit maps lognormal kernels and their weighting", {
     params <- mizer::NS_params
-    sp <- params@species_params
-    kernel_power <- params@resource_params$lambda - 4 / 3
+    sp <- mizer::species_params(params)
+    kernel_power <- mizer::resource_params(params)$lambda - 4 / 3
 
     result <- extract_fit(params)
 
@@ -273,15 +273,15 @@ test_that("extract_fit maps lognormal kernels and their weighting", {
 
 test_that("extract_fit maps power-law kernels", {
     params <- mizer::NS_params
-    sp <- params@species_params
+    sp <- mizer::species_params(params)
     sp$pred_kernel_type[1] <- "power_law"
     sp$kernel_exp <- 0.2
     sp$kernel_l_l <- 2
     sp$kernel_u_l <- 4
     sp$kernel_l_r <- 12
     sp$kernel_u_r <- 6
-    params@species_params <- sp
-    kernel_power <- params@resource_params$lambda - 4 / 3
+    params$species_params <- sp
+    kernel_power <- mizer::resource_params(params)$lambda - 4 / 3
 
     result <- extract_fit(params)[1, , drop = FALSE]
 
@@ -294,43 +294,44 @@ test_that("extract_fit maps power-law kernels", {
 
 test_that("extract_fit rejects unsupported mizer kernels", {
     params <- mizer::NS_params
-    params@species_params$pred_kernel_type[1] <- "unsupported"
+    params$species_params$pred_kernel_type[1] <- "unsupported"
 
     expect_error(extract_fit(params), "Unknown pred_kernel_type: unsupported")
 })
 
 test_that("set_kernel_params maps a normal fit without modifying its input", {
     params <- mizer::NS_params
-    original <- params@species_params
+    original <- mizer::species_params(params)
     species <- original$species[1]
-    kernel_power <- params@resource_params$lambda - 4 / 3
+    kernel_power <- mizer::resource_params(params)$lambda - 4 / 3
     fit <- data.frame(
         species = species, distribution = "normal", power = 0,
         mean = 6, sd = 1.5
     )
 
     result <- suppressWarnings(set_kernel_params(params, fit))
-    result_sp <- result@species_params
+    result_sp <- mizer::species_params(result)
     expected_mean <- fit$mean - kernel_power * fit$sd^2
 
+    expect_s3_class(result, "MizerParams")
     expect_equal(unname(result_sp$pred_kernel_type[1]), "lognormal")
     expect_equal(unname(result_sp$beta[1]), exp(expected_mean))
     expect_equal(unname(result_sp$sigma[1]), fit$sd)
-    expect_identical(params@species_params, original)
+    expect_identical(mizer::species_params(params), original)
     expect_equal(result_sp$beta[-1], original$beta[-1])
 })
 
 test_that("set_kernel_params maps a truncated-exponential fit", {
     params <- mizer::NS_params
-    species <- params@species_params$species[1]
-    kernel_power <- params@resource_params$lambda - 4 / 3
+    species <- mizer::species_params(params)$species[1]
+    kernel_power <- mizer::resource_params(params)$lambda - 4 / 3
     fit <- data.frame(
         species = species, distribution = "trunc_exp", power = 0,
         alpha = 1.1, ll = 2, ul = 4, lr = 12, ur = 6
     )
 
     result <- suppressWarnings(set_kernel_params(params, fit))
-    row <- result@species_params[1, ]
+    row <- mizer::species_params(result)[1, ]
 
     expect_equal(unname(row$pred_kernel_type), "power_law")
     expect_equal(unname(row$kernel_exp), fit$alpha - kernel_power)
@@ -342,9 +343,9 @@ test_that("set_kernel_params maps a truncated-exponential fit", {
 
 test_that("set_kernel_params maps a Gaussian-mixture fit", {
     params <- mizer::NS_params
-    original <- params@species_params
+    original <- mizer::species_params(params)
     species <- original$species[1]
-    kernel_power <- params@resource_params$lambda - 4 / 3
+    kernel_power <- mizer::resource_params(params)$lambda - 4 / 3
     fit <- data.frame(
         species = species, distribution = "gauss_mix", power = 0
     )
@@ -354,19 +355,19 @@ test_that("set_kernel_params maps a Gaussian-mixture fit", {
     expected <- transform_fit(fit, power = kernel_power)
 
     result <- suppressWarnings(set_kernel_params(params, fit))
-    result_sp <- result@species_params
+    result_sp <- mizer::species_params(result)
 
     expect_equal(unname(result_sp$pred_kernel_type[1]), "gaussian_mixture")
     expect_equal(result_sp$kernel_p[[1]], expected$p[[1]])
     expect_equal(result_sp$kernel_mean[[1]], expected$mean[[1]])
     expect_equal(result_sp$kernel_sd[[1]], expected$sd[[1]])
-    expect_true(all(is.finite(mizer::getPredKernel(result))))
-    expect_identical(params@species_params, original)
+    expect_true(all(is.finite(mizer::pred_kernel(result))))
+    expect_identical(mizer::species_params(params), original)
 })
 
 test_that("extract_fit handles heterogeneous kernel families", {
     params <- mizer::NS_params
-    species <- params@species_params$species[1]
+    species <- mizer::species_params(params)$species[1]
     mixture <- data.frame(
         species = species, distribution = "gauss_mix", power = 0
     )
@@ -396,6 +397,7 @@ test_that("extract_fit handles heterogeneous kernel families", {
 
 test_that("kernel parameter conversions round trip", {
     params <- mizer::NS_params
+    expect_s3_class(params, "MizerParams")
     normal_fit <- extract_fit(params)[1, , drop = FALSE]
     normal_roundtrip <- extract_fit(
         suppressWarnings(set_kernel_params(params, normal_fit))
@@ -404,7 +406,7 @@ test_that("kernel parameter conversions round trip", {
     expect_equal(normal_roundtrip$mean, normal_fit$mean)
     expect_equal(normal_roundtrip$sd, normal_fit$sd)
 
-    species <- params@species_params$species[1]
+    species <- mizer::species_params(params)$species[1]
     trunc_fit <- data.frame(
         species = species, distribution = "trunc_exp", power = 0,
         alpha = 1.1, ll = 2, ul = 4, lr = 12, ur = 6

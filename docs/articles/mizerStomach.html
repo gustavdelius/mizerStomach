@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Getting started • mizerStomach</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script src="../deps/jquery-3.6.1/jquery-3.6.1.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -62,15 +62,16 @@
     
     
 <p><code>mizerStomach</code> uses stomach-content observations to
-estimate how a predator’s prey are distributed over body size <span class="citation">(Hyslop 1980; Baker et al. 2014; Amundsen et al.
-1996)</span>. It works on the log predator/prey mass ratio</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>w</mi><mtext mathvariant="normal">pred</mtext></msub><msub><mi>w</mi><mtext mathvariant="normal">prey</mtext></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+estimate how a predator’s prey are distributed over body size <span class="citation">(Hyslop 1980; Baker, Buckland, and Sheaves 2014;
+Amundsen, Gabler, and Staldal 1996)</span>. It works on the log
+predator/prey mass ratio</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>w</mi><mtext mathvariant="normal">pred</mtext></msub><msub><mi>w</mi><mtext mathvariant="normal">prey</mtext></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \log(\mathrm{PPMR}) = \log\left(\frac{w_\text{pred}}{w_\text{prey}}\right).
 </annotation></semantics></math></p>
 <p>fits a probability distribution to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(\mathrm{PPMR})</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\log(\mathrm{PPMR})</annotation></semantics></math>,
 and can translate that distribution into feeding-kernel parameters for a
-<a href="https://sizespectrum.org/mizer/" class="external-link">mizer</a> model <span class="citation">(Scott et al. 2014)</span>.</p>
+<a href="https://sizespectrum.org/mizer/" class="external-link">mizer</a> model <span class="citation">(Scott, Blanchard, and Andersen 2014)</span>.</p>
 <p>This vignette introduces the usual workflow:</p>
 <ol style="list-style-type: decimal">
 <li>prepare and check stomach-content data;</li>
@@ -298,11 +299,11 @@ checked visually. A previous fit can be supplied through
 <span>  fits <span class="op">=</span> <span class="va">cod_truncated</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The third family, <code>distribution = "gauss_mix"</code>, fits a
-two-component normal mixture with weighted EM updates. It can represent
-multimodality but is not currently supported by
-<code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code>. Mixture fits can be sensitive to
-initialization and nearly degenerate components, so use them for
-exploratory diagnosis and check the result carefully.</p>
+two-component normal mixture with weighted EM updates and can be
+transferred to mizer as a <code>"gaussian_mixture"</code> predation
+kernel. Mixture fits can be sensitive to initialization and nearly
+degenerate components, so check the result carefully before using it in
+a model.</p>
 </div>
 <div class="section level2">
 <h2 id="diagnose-a-fit">Diagnose a fit<a class="anchor" aria-label="anchor" href="#diagnose-a-fit"></a>
@@ -365,16 +366,18 @@ example is not run while building the vignette.</p>
 <div class="section level2">
 <h2 id="put-a-fit-into-a-mizer-model">Put a fit into a mizer model<a class="anchor" aria-label="anchor" href="#put-a-fit-into-a-mizer-model"></a>
 </h2>
-<p><code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code> supports normal and
-truncated-exponential fits. It first transforms the fit from its
-recorded <code>power</code> to the exponent required by the model,</p>
+<p><code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code> supports normal,
+truncated-exponential, and Gaussian-mixture fits. It first transforms
+the fit from its recorded <code>power</code> to the exponent required by
+the model,</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mrow><mi>m</mi><mi>i</mi><mi>z</mi><mi>e</mi><mi>r</mi></mrow></msub><mo>=</mo><mi>λ</mi><mo>−</mo><mfrac><mn>4</mn><mn>3</mn></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
 q_{mizer} = \lambda - \frac{4}{3},
 </annotation></semantics></math></p>
 <p>where <code>lambda</code> is the resource-spectrum exponent in the
 <code>MizerParams</code> object. It then maps a normal distribution to
-mizer’s <code>"lognormal"</code> feeding kernel, or a truncated
-exponential to its <code>"power_law"</code> kernel.</p>
+mizer’s <code>"lognormal"</code> feeding kernel, a truncated exponential
+to its <code>"power_law"</code> kernel, or a Gaussian mixture to its
+<code>"gaussian_mixture"</code> kernel.</p>
 <p>Species names in the fit and model must agree. The Barnes data call
 the species <code>"Atlantic cod"</code>, while
 <code><a href="https://sizespectrum.org/mizer/reference/NS_params.html" class="external-link">mizer::NS_params</a></code> calls it <code>"Cod"</code>, so we rename
@@ -477,7 +480,7 @@ Evolution</em> 5 (10): 1121–25.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

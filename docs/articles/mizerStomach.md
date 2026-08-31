@@ -1,17 +1,16 @@
 # Getting started
 
 `mizerStomach` uses stomach-content observations to estimate how a
-predator’s prey are distributed over body size (Hyslop 1980; Baker et
-al. 2014; Amundsen et al. 1996). It works on the log predator/prey mass
-ratio
+predator’s prey are distributed over body size (Hyslop 1980; Baker,
+Buckland, and Sheaves 2014; Amundsen, Gabler, and Staldal 1996). It
+works on the log predator/prey mass ratio
 
-``` math
-\log(\mathrm{PPMR}) = \log\left(\frac{w_\text{pred}}{w_\text{prey}}\right).
-```
+$$\log\left( {PPMR} \right) = \log\left( \frac{w_{\text{pred}}}{w_{\text{prey}}} \right).$$
 
-fits a probability distribution to $`\log(\mathrm{PPMR})`$, and can
+fits a probability distribution to $\log\left( {PPMR} \right)$, and can
 translate that distribution into feeding-kernel parameters for a
-[mizer](https://sizespectrum.org/mizer/) model (Scott et al. 2014).
+[mizer](https://sizespectrum.org/mizer/) model (Scott, Blanchard, and
+Andersen 2014).
 
 This vignette introduces the usual workflow:
 
@@ -32,7 +31,6 @@ for the stomach-to-kernel assumptions and derivation.
 ## Set up
 
 ``` r
-
 library(mizerStomach)
 ```
 
@@ -40,7 +38,6 @@ The package includes `barnes_data`, a set of individual predator/prey
 body-mass observations for 12 predator species (Barnes et al. 2010).
 
 ``` r
-
 head(barnes_data, 4)
 #> # A tibble: 4 × 5
 #>   species               w_pred w_prey n_prey log_ppmr
@@ -71,7 +68,6 @@ distribution summarizes prey sizes for each predator species.
 checks the required columns and adds `log_ppmr` when it is missing.
 
 ``` r
-
 cod_data <- validate_ppmr_data(barnes_data, species = "Atlantic cod")
 cod_data <- cod_data[c("species", "w_pred", "w_prey", "n_prey", "log_ppmr")]
 head(cod_data, 4)
@@ -102,7 +98,6 @@ divides the selected observations into ten approximately equally
 populated predator-mass classes.
 
 ``` r
-
 set.seed(1)
 plot_ppmr_violins(barnes_data, "Atlantic cod", power = 2 / 3)
 #> Warning: `quantiles` for weighted data is not implemented.
@@ -135,19 +130,17 @@ identification and sampling limits.
 
 For
 [`fit_log_ppmr()`](https://gustavdelius.github.io/mizerStomach/reference/fit_log_ppmr.md),
-row $`i`$ receives weight
+row $i$ receives weight
 
-``` math
-n_{prey,i}\,w_{prey,i}^{q},
-```
+$$n_{prey,i}\, w_{prey,i}^{q},$$
 
-where $`q`$ is the `power` argument. Useful choices include:
+where $q$ is the `power` argument. Useful choices include:
 
-| `power` | Distribution emphasized |
-|:---|:---|
-| `0` | Number of prey individuals in stomachs |
-| `2/3` | Diet biomass under the package’s surface-area scaling assumption for digestion |
-| `1` | Prey biomass in stomachs |
+| `power`        | Distribution emphasized                                                              |
+|:---------------|:-------------------------------------------------------------------------------------|
+| `0`            | Number of prey individuals in stomachs                                               |
+| `2/3`          | Diet biomass under the package’s surface-area scaling assumption for digestion       |
+| `1`            | Prey biomass in stomachs                                                             |
 | `lambda - 4/3` | Feeding-kernel representation used for a mizer model with resource exponent `lambda` |
 
 The best choice depends on the question and on which part of the
@@ -169,7 +162,6 @@ data, or when PPMR depends on predator size.
 We start with a normal distribution at `power = 2/3`.
 
 ``` r
-
 cod_normal <- fit_log_ppmr(
   barnes_data,
   species = "Atlantic cod",
@@ -192,7 +184,6 @@ explicit lower or upper prey-size boundary. A smoothly truncated
 exponential is often a more flexible description of a feeding range.
 
 ``` r
-
 cod_truncated <- fit_log_ppmr(
   barnes_data,
   species = "Atlantic cod",
@@ -214,7 +205,6 @@ visually. A previous fit can be supplied through `fits` to reuse its
 parameters as starting values:
 
 ``` r
-
 cod_truncated <- fit_log_ppmr(
   barnes_data,
   distribution = "trunc_exp",
@@ -223,12 +213,10 @@ cod_truncated <- fit_log_ppmr(
 ```
 
 The third family, `distribution = "gauss_mix"`, fits a two-component
-normal mixture with weighted EM updates. It can represent multimodality
-but is not currently supported by
-[`set_kernel_params()`](https://gustavdelius.github.io/mizerStomach/reference/set_kernel_params.md).
-Mixture fits can be sensitive to initialization and nearly degenerate
-components, so use them for exploratory diagnosis and check the result
-carefully.
+normal mixture with weighted EM updates and can be transferred to mizer
+as a `"gaussian_mixture"` predation kernel. Mixture fits can be
+sensitive to initialization and nearly degenerate components, so check
+the result carefully before using it in a model.
 
 ## Diagnose a fit
 
@@ -239,14 +227,12 @@ biomass distributions (`power = 1`). The stored fit is transformed to
 both powers automatically.
 
 ``` r
-
 plot_log_ppmr_fit(barnes_data, cod_normal, type = "histogram")
 ```
 
 ![](mizerStomach_files/figure-html/normal-diagnostic-1.png)
 
 ``` r
-
 plot_log_ppmr_fit(barnes_data, cod_truncated, type = "histogram")
 ```
 
@@ -264,7 +250,6 @@ Use
 when numerical density values are more useful than a plot.
 
 ``` r
-
 log_ppmr_grid <- seq(2, 12, length.out = 6)
 data.frame(
   log_ppmr = log_ppmr_grid,
@@ -283,7 +268,6 @@ Multiple species can be fitted in one call. They are fitted
 independently and returned as one row per species.
 
 ``` r
-
 tuna_fits <- fit_log_ppmr(
   barnes_data,
   species = c("Albacore", "Yellowfin tuna"),
@@ -306,23 +290,22 @@ and the same diagnostic plot. It opens a browser and blocks the R
 session, so this example is not run while building the vignette.
 
 ``` r
-
 tuned_fit <- fit_shiny(barnes_data, fits = cod_truncated)
 ```
 
 ## Put a fit into a mizer model
 
 [`set_kernel_params()`](https://gustavdelius.github.io/mizerStomach/reference/set_kernel_params.md)
-supports normal and truncated-exponential fits. It first transforms the
-fit from its recorded `power` to the exponent required by the model,
+supports normal, truncated-exponential, and Gaussian-mixture fits. It
+first transforms the fit from its recorded `power` to the exponent
+required by the model,
 
-``` math
-q_{mizer} = \lambda - \frac{4}{3},
-```
+$$q_{mizer} = \lambda - \frac{4}{3},$$
 
 where `lambda` is the resource-spectrum exponent in the `MizerParams`
 object. It then maps a normal distribution to mizer’s `"lognormal"`
-feeding kernel, or a truncated exponential to its `"power_law"` kernel.
+feeding kernel, a truncated exponential to its `"power_law"` kernel, or
+a Gaussian mixture to its `"gaussian_mixture"` kernel.
 
 Species names in the fit and model must agree. The Barnes data call the
 species `"Atlantic cod"`, while
@@ -330,7 +313,6 @@ species `"Atlantic cod"`, while
 calls it `"Cod"`, so we rename the fit row before transferring it.
 
 ``` r
-
 params <- mizer::NS_params
 
 model_cod_fit <- cod_normal
@@ -358,7 +340,6 @@ kernels with the same plotting and transformation tools, or as the
 starting point for manual changes.
 
 ``` r
-
 extracted <- extract_fit(params)
 extracted["Cod", c("species", "distribution", "power", "mean", "sd")]
 #>     species distribution power     mean       sd

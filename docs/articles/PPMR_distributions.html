@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Choosing and diagnosing a log-PPMR distribution • mizerStomach</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script src="../deps/jquery-3.6.1/jquery-3.6.1.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -68,7 +68,8 @@
 <code>barnes_data</code> <span class="citation">(Barnes et al.
 2010)</span>, which is distributed with the package, and focuses on
 questions that should be answered before a fit is transferred to a mizer
-model <span class="citation">(Scott et al. 2014)</span>:</p>
+model <span class="citation">(Scott, Blanchard, and Andersen
+2014)</span>:</p>
 <ol style="list-style-type: decimal">
 <li>Is one log predator/prey mass-ratio (log-PPMR) distribution adequate
 across predator sizes?</li>
@@ -314,11 +315,11 @@ and uses weighted EM updates from a deterministic initialization.
 Mixture likelihoods can have local optima or nearly degenerate
 components, so visually inspect the result and consider multiple
 initializations in a more specialized analysis.</p>
-<p>Gaussian mixtures are supported by <code><a href="../reference/get_density.html">get_density()</a></code> and
-<code><a href="../reference/transform_fit.html">transform_fit()</a></code> but cannot currently be transferred to
-mizer with <code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code>. They are therefore most
-useful for exploratory diagnosis rather than the final kernel
-workflow.</p>
+<p>Gaussian mixtures are supported throughout the workflow, including
+transfer to mizer with <code><a href="../reference/set_kernel_params.html">set_kernel_params()</a></code>. Because mixture
+likelihoods can have local optima or nearly degenerate components, the
+fitted kernel should still be treated as exploratory until it has been
+checked visually and against relevant biological knowledge.</p>
 </div>
 <div class="section level2">
 <h2 id="interactive-refinement">Interactive refinement<a class="anchor" aria-label="anchor" href="#interactive-refinement"></a>
@@ -383,7 +384,7 @@ Evolution</em> 5 (10): 1121–25.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

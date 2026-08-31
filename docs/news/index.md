@@ -11,6 +11,9 @@
 - Added transformations between prey-number and prey-biomass weightings.
 - Added support for transferring fitted feeding kernels to and from
   `MizerParams` objects, including Gaussian-mixture kernels.
+- Updated the mizer integration for mizer 3.4’s S3 `MizerParams` objects
+  by using the public parameter accessors, and removed the unused
+  `mizerExperimental` dependency.
 - Added an interactive Shiny gadget for fitting and adjusting
   distributions.
 - Added the `barnes_data` example dataset, package articles, and an
