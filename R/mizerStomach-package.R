@@ -33,7 +33,7 @@
 #' * `vignette("feeding_kernels", package = "mizerStomach")` derives and
 #'   demonstrates the mizer feeding-kernel conversion.
 #'
-#' @import mizer mizerExperimental dplyr ggplot2
+#' @import dplyr ggplot2
 #' @importFrom stats weighted.mean dnorm integrate rnorm sd setNames
 #' @importFrom graphics text
 #' @importFrom utils hasName

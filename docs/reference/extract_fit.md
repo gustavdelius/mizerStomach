@@ -31,8 +31,8 @@ A validated fit data frame with one row per model species, `power = 0`,
 
 A mizer kernel is expressed at the prey-mass weighting exponent \\q_m =
 \lambda - 4/3\\, where `lambda` is read from
-`params@resource_params$lambda`. This function first reads the
-parameters at \\q_m\\ and then calls
+[`mizer::resource_params()`](https://sizespectrum.org/mizer/reference/resource_params.html)`$lambda`.
+This function first reads the parameters at \\q_m\\ and then calls
 [`transform_fit()`](https://gustavdelius.github.io/mizerStomach/reference/transform_fit.md)
 to return number-weighted fits (`power = 0`). This makes `extract_fit()`
 the inverse of
@@ -48,8 +48,14 @@ Kernel types are mapped as follows:
   its parameters are read from `kernel_exp`, `kernel_l_l`, `kernel_u_l`,
   `kernel_l_r`, and `kernel_u_r`.
 
-Other kernel types, including a Gaussian mixture, are not supported and
-cause an error.
+- `pred_kernel_type = "gaussian_mixture"` becomes
+  `distribution = "gauss_mix"`; its component vectors are read from the
+  list-columns `kernel_p`, `kernel_mean`, and `kernel_sd`.
+
+Other kernel types cause an error. If the model contains a mixture of
+kernel families, `mean`, `sd`, and `p` are returned as list-columns so
+that vector-valued Gaussian-mixture parameters and scalar normal
+parameters can coexist in the same data frame.
 
 ## See also
 

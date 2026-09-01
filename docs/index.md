@@ -35,7 +35,6 @@ reference](https://gustavdelius.github.io/mizerStomach/reference/).
 Install the development version from GitHub:
 
 ``` r
-
 # install.packages("pak")
 pak::pak("gustavdelius/mizerStomach")
 ```
@@ -44,9 +43,7 @@ pak::pak("gustavdelius/mizerStomach")
 
 The package works with the log predator/prey mass ratio
 
-``` math
-\log(\mathrm{PPMR}) = \log\left(\frac{w_\text{pred}}{w_\text{prey}}\right).
-```
+$$\log\left( {PPMR} \right) = \log\left( \frac{w_{\text{pred}}}{w_{\text{prey}}} \right).$$
 
 The package includes `barnes_data`, with 23,164 predator/prey
 observations for 12 marine predator species. This example fits a normal
@@ -54,7 +51,6 @@ distribution to Atlantic cod using the diet-biomass weighting discussed
 in the articles:
 
 ``` r
-
 library(mizerStomach)
 
 cod_fit <- fit_log_ppmr(
@@ -71,18 +67,17 @@ The fitted object records the weighting in its `power` column. It can be
 expressed at another weighting without refitting the observations:
 
 ``` r
-
 cod_number_fit <- transform_fit(cod_fit, power = 0)
 
 grid <- seq(2, 12, length.out = 100)
 density <- get_density(grid, cod_number_fit)
 ```
 
-Normal and truncated-exponential fits can be transferred to mizer.
-Species names must agree between the fit and model:
+Normal, truncated-exponential, and Gaussian-mixture fits can be
+transferred to mizer. Species names must agree between the fit and
+model:
 
 ``` r
-
 params <- mizer::NS_params
 
 model_cod_fit <- cod_fit
@@ -125,11 +120,11 @@ a format validator, not a substitute for biological data cleaning.
 [`fit_log_ppmr()`](https://gustavdelius.github.io/mizerStomach/reference/fit_log_ppmr.md)
 supports three families:
 
-| Family | Method | Transfer to mizer |
-|:---|:---|:---|
-| `"normal"` | Weighted maximum likelihood | Yes, as a lognormal kernel |
-| `"trunc_exp"` | Weighted nonlinear maximum likelihood with smooth cutoffs | Yes, as a power-law kernel |
-| `"gauss_mix"` | Weighted expectation-maximization | Not currently supported |
+| Family        | Method                                                    | Transfer to mizer                 |
+|:--------------|:----------------------------------------------------------|:----------------------------------|
+| `"normal"`    | Weighted maximum likelihood                               | Yes, as a lognormal kernel        |
+| `"trunc_exp"` | Weighted nonlinear maximum likelihood with smooth cutoffs | Yes, as a power-law kernel        |
+| `"gauss_mix"` | Weighted expectation-maximization                         | Yes, as a Gaussian-mixture kernel |
 
 Observation rows receive weight `n_prey * w_prey^power`. Common choices
 are `power = 0` for prey numbers, `power = 1` for stomach prey biomass,

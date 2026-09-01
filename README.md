@@ -71,8 +71,8 @@ grid <- seq(2, 12, length.out = 100)
 density <- get_density(grid, cod_number_fit)
 ```
 
-Normal and truncated-exponential fits can be transferred to mizer. Species
-names must agree between the fit and model:
+Normal, truncated-exponential, and Gaussian-mixture fits can be transferred to
+mizer. Species names must agree between the fit and model:
 
 ```r
 params <- mizer::NS_params
@@ -116,7 +116,7 @@ cleaning.
 |:--|:--|:--|
 | `"normal"` | Weighted maximum likelihood | Yes, as a lognormal kernel |
 | `"trunc_exp"` | Weighted nonlinear maximum likelihood with smooth cutoffs | Yes, as a power-law kernel |
-| `"gauss_mix"` | Weighted expectation-maximization | Not currently supported |
+| `"gauss_mix"` | Weighted expectation-maximization | Yes, as a Gaussian-mixture kernel |
 
 Observation rows receive weight `n_prey * w_prey^power`. Common choices are
 `power = 0` for prey numbers, `power = 1` for stomach prey biomass, and

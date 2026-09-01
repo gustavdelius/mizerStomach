@@ -70,7 +70,7 @@ Interactive parameter tuning for 14 hardcoded fish species. Reads from an extern
 
 ### Key Dependencies
 
-- `mizer` / `mizerExperimental` (GitHub): Ecosystem model this package feeds into
+- `mizer` (>= 3.4.0): Ecosystem model this package feeds into
 - `bbmle`: MLE fitting via `mle2()`
 - `ggplot2` / `dplyr`: Visualization and data manipulation
 - `Hmisc`: Weighted quantile functions

@@ -18,12 +18,8 @@ Imports:
     ggplot2,
     Hmisc,
     later,
-    mizer (>= 3.2.1.9001),
-    mizerExperimental,
+    mizer (>= 3.4.0),
     shiny
-Remotes:
-    sizespectrum/mizer,
-    sizespectrum/mizerExperimental
 Suggests: 
     knitr,
     rmarkdown,
@@ -42,4 +38,4 @@ Roxygen: list(markdown = TRUE)
 Depends: 
     R (>= 4.1)
 Config/testthat/edition: 3
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0
